@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { FamilyMember, Sex, ActivityLevel, User } from "../types";
 import { calcTDEE, getCalGoal, getMacroGoals, uid, ACTIVITY_OPTIONS, MEMBER_COLORS } from "../lib/utils";
@@ -23,6 +24,7 @@ const emptyForm: MemberForm = {
 };
 
 export function FamilyMembersView({ user, onUpdateUser }: FamilyMembersViewProps) {
+  const { t } = useTranslation();
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<MemberForm>(emptyForm);
@@ -85,13 +87,13 @@ export function FamilyMembersView({ user, onUpdateUser }: FamilyMembersViewProps
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-base font-semibold text-foreground">Family Members</h1>
+          <h1 className="text-base font-semibold text-foreground">{t('family.title')}</h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {user.familyMembers.length} members
+            {t('family.subtitle', { count: user.familyMembers.length })}
           </p>
         </div>
         <Button size="sm" onClick={openAdd}>
-          <Plus size={13} /> Add Member
+          <Plus size={13} /> {t('family.addMember')}
         </Button>
       </div>
 
@@ -99,12 +101,12 @@ export function FamilyMembersView({ user, onUpdateUser }: FamilyMembersViewProps
         <div className="bg-card rounded-xl border border-border p-12 text-center">
           <img
             src="https://images.unsplash.com/photo-1609220136736-443140cffec6?w=300&h=200&fit=crop&auto=format&q=75"
-            alt="Family"
+            alt={t('family.noMembersAlt')}
             className="w-36 h-24 object-cover rounded-lg mx-auto mb-4 opacity-80"
           />
-          <p className="font-semibold text-foreground">No family members yet</p>
+          <p className="font-semibold text-foreground">{t('family.noMembers')}</p>
           <p className="text-sm text-muted-foreground mt-1">
-            Add members to calculate their daily calorie and macro goals.
+            {t('family.noMembersHint')}
           </p>
         </div>
       )}
@@ -120,16 +122,16 @@ export function FamilyMembersView({ user, onUpdateUser }: FamilyMembersViewProps
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-sm text-foreground">{m.name}</div>
                 <div className="text-xs text-muted-foreground mt-0.5">
-                  {m.age} y · {m.weight} kg · {m.height} cm · {m.sex}
+                  {m.age} {t('family.yearsOld')} · {m.weight} {t('common.kg')} · {m.height} {t('common.cm')} · {t(`family.sex.${m.sex}`)}
                 </div>
                 <div className="text-xs text-muted-foreground mt-0.5">
-                  TDEE {tdee} kcal · Goal {cg} kcal
-                  {m.customCalorieGoal && <span className="text-primary ml-1">(custom)</span>}
+                  {t('family.tdee')} {tdee} {t('common.kcal')} · {t('family.goal')} {cg} {t('common.kcal')}
+                  {m.customCalorieGoal && <span className="text-primary ml-1">({t('family.custom')})</span>}
                 </div>
                 <div className="flex gap-2.5 mt-2 text-xs tabular-nums">
-                  <span className="text-blue-600">P {mg.protein}g</span>
-                  <span className="text-amber-600">F {mg.fat}g</span>
-                  <span className="text-orange-600">C {mg.carbs}g</span>
+                  <span className="text-blue-600">{t('nutrition.protein')} {mg.protein}{t('common.grams')}</span>
+                  <span className="text-amber-600">{t('nutrition.fat')} {mg.fat}{t('common.grams')}</span>
+                  <span className="text-orange-600">{t('nutrition.carbs')} {mg.carbs}{t('common.grams')}</span>
                 </div>
               </div>
               <div className="flex gap-1 shrink-0">
@@ -157,19 +159,19 @@ export function FamilyMembersView({ user, onUpdateUser }: FamilyMembersViewProps
       <Modal
         open={showForm}
         onClose={() => setShowForm(false)}
-        title={editId ? "Edit Member" : "Add Family Member"}
+        title={editId ? t('family.editMember') : t('family.addMember')}
         footer={
           <>
-            <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setShowForm(false)}>{t('common.cancel')}</Button>
             <Button onClick={handleSave} disabled={!form.name.trim()}>
-              {editId ? "Save Changes" : "Add Member"}
+              {editId ? t('common.save') : t('family.addMember')}
             </Button>
           </>
         }
       >
         <div className="flex flex-col gap-4">
           {/* Avatar color picker */}
-          <Field label="Avatar Color">
+          <Field label={t('family.form.avatarColor')}>
             <div className="flex gap-2 flex-wrap">
               {MEMBER_COLORS.map(color => (
                 <button
@@ -180,54 +182,53 @@ export function FamilyMembersView({ user, onUpdateUser }: FamilyMembersViewProps
                 />
               ))}
             </div>
-            {/* Preview */}
             <div className="flex items-center gap-2 mt-2">
               <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-semibold" style={{ backgroundColor: form.color }}>
                 {(form.name || "A")[0].toUpperCase()}
               </div>
-              <span className="text-xs text-muted-foreground">Preview</span>
+              <span className="text-xs text-muted-foreground">{t('family.form.preview')}</span>
             </div>
           </Field>
 
-          <Field label="Full Name">
-            <TInput value={form.name} onChange={v => setF("name", v)} placeholder="Member's name" />
+          <Field label={t('family.form.name')}>
+            <TInput value={form.name} onChange={v => setF("name", v)} placeholder={t('family.form.namePlaceholder')} />
           </Field>
 
           <div className="grid grid-cols-3 gap-3">
-            <Field label="Age">
+            <Field label={t('family.form.age')}>
               <NInput value={form.age} onChange={v => setF("age", v)} min={1} max={120} />
             </Field>
-            <Field label="Weight (kg)">
+            <Field label={t('family.form.weight')}>
               <NInput value={form.weight} onChange={v => setF("weight", v)} min={1} step={0.5} />
             </Field>
-            <Field label="Height (cm)">
+            <Field label={t('family.form.height')}>
               <NInput value={form.height} onChange={v => setF("height", v)} min={50} max={250} />
             </Field>
           </div>
 
-          <Field label="Sex">
+          <Field label={t('family.form.sex')}>
             <Sel value={form.sex} onChange={v => setF("sex", v)}>
-              <option value="female">Female</option>
-              <option value="male">Male</option>
+              <option value="female">{t('family.form.female')}</option>
+              <option value="male">{t('family.form.male')}</option>
             </Sel>
           </Field>
 
-          <Field label="Activity Level">
+          <Field label={t('family.form.activity')}>
             <Sel value={form.activityLevel} onChange={v => setF("activityLevel", v)}>
               {ACTIVITY_OPTIONS.map(o => (
-                <option key={o.value} value={o.value}>{o.label}</option>
+                <option key={o.value} value={o.value}>{t(`family.activityLevels.${o.value}`)}</option>
               ))}
             </Sel>
           </Field>
 
           <Field
-            label="Custom Calorie Goal (optional)"
-            hint={tdeePreview ? `Calculated TDEE: ${tdeePreview} kcal/day` : undefined}
+            label={t('family.form.customGoal')}
+            hint={tdeePreview ? t('family.form.tdeeHint', { tdee: tdeePreview }) : undefined}
           >
             <NInput
               value={form.customCalorieGoal}
               onChange={v => setF("customCalorieGoal", v)}
-              placeholder={tdeePreview ? String(tdeePreview) : "Leave blank to use TDEE"}
+              placeholder={tdeePreview ? String(tdeePreview) : t('family.form.customGoalPlaceholder')}
               min={500}
             />
           </Field>

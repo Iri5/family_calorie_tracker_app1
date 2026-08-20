@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
+import { useProductName } from '../hooks/useProductName';
 import { Search, Check, X } from "lucide-react";
 import { AppData, FamilyMember, MealEntry, MealType, Product, Recipe } from "../types";
 import {
@@ -30,6 +32,8 @@ export function FamilyMealModal({
   date,
   onLog,
 }: FamilyMealModalProps) {
+  const { t } = useTranslation();
+  const { getProductName } = useProductName();
   const [mealType, setMealType] = useState<MealType>("breakfast");
   const [tab, setTab] = useState<"products" | "recipes">("products");
   const [search, setSearch] = useState("");
@@ -108,23 +112,23 @@ export function FamilyMealModal({
     selected?.type === "product"
       ? (selected.item as Product).name
       : selected?.type === "recipe"
-      ? (selected.item as Recipe).name
-      : "";
+        ? (selected.item as Recipe).name
+        : "";
 
   return (
     <Modal
       open={open}
       onClose={onClose}
-      title="Add Family Meal"
+      title={t('familyMealModal.title')}
       subtitle={date}
       wide
       footer={
         <>
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleLog} disabled={!canLog}>
-            Log for {totalLogged} member{totalLogged !== 1 ? "s" : ""}
+            {t('familyMealModal.logFor', { count: totalLogged })}
           </Button>
         </>
       }
@@ -132,7 +136,7 @@ export function FamilyMealModal({
       <div className="flex flex-col gap-5">
         {/* Meal type */}
         <div>
-          <p className="text-xs font-medium text-muted-foreground mb-2">Meal</p>
+          <p className="text-xs font-medium text-muted-foreground mb-2">{t('familyMealModal.meal')}</p>
           <div className="flex gap-1.5">
             {MEAL_CONFIG.map(({ type, label }) => (
               <button
@@ -145,7 +149,7 @@ export function FamilyMealModal({
                     : "bg-muted text-muted-foreground hover:text-foreground",
                 ].join(" ")}
               >
-                {label}
+                {t(`meal.${type}`)}
               </button>
             ))}
           </div>
@@ -153,16 +157,20 @@ export function FamilyMealModal({
 
         {/* Food selection */}
         <div>
-          <p className="text-xs font-medium text-muted-foreground mb-2">Food Item</p>
+          <p className="text-xs font-medium text-muted-foreground mb-2">{t('familyMealModal.foodItem')}</p>
 
           {selected ? (
             <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-primary/25 bg-accent/40">
               <Check size={14} className="text-primary shrink-0" />
               <div className="flex-1 min-w-0">
-                <span className="text-sm font-medium">{foodName}</span>
+                <span className="text-sm font-medium">
+                  {selected.type === "product"
+                    ? getProductName(selected.item as Product)
+                    : (selected.item as Recipe).name}
+                </span>
                 {selected.type === "product" && (
                   <span className="text-xs text-muted-foreground ml-2">
-                    {(selected.item as Product).calories} kcal/100g
+                    {(selected.item as Product).calories} {t('common.kcal')}/100g
                   </span>
                 )}
               </div>
@@ -177,18 +185,18 @@ export function FamilyMealModal({
             <div>
               {/* Tabs */}
               <div className="flex gap-1 mb-2">
-                {(["products", "recipes"] as const).map(t => (
+                {(["products", "recipes"] as const).map(tabKey => (
                   <button
-                    key={t}
-                    onClick={() => setTab(t)}
+                    key={tabKey}
+                    onClick={() => setTab(tabKey)}
                     className={[
                       "px-3 py-1 rounded-md text-xs font-medium capitalize transition-colors",
-                      tab === t
+                      tab === tabKey
                         ? "bg-secondary text-secondary-foreground"
                         : "text-muted-foreground hover:bg-muted",
                     ].join(" ")}
                   >
-                    {t}
+                    {t(`familyMealModal.tabs.${tabKey}`)}
                   </button>
                 ))}
               </div>
@@ -199,7 +207,7 @@ export function FamilyMealModal({
                 <input
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  placeholder={`Search ${tab}…`}
+                  placeholder={t('familyMealModal.searchPlaceholder', { tab })}
                   className="w-full pl-8 pr-8 py-2 rounded-lg border border-border bg-input-background text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
                 {search && (
@@ -221,20 +229,20 @@ export function FamilyMealModal({
                     className="w-full text-left px-3 py-2.5 hover:bg-muted transition-colors flex items-center justify-between"
                   >
                     <div>
-                      <span className="text-sm font-medium">{p.name}</span>
+                      <span className="text-sm font-medium">{getProductName(p)}</span>
                       <span className="text-xs text-muted-foreground ml-2">{p.description}</span>
                     </div>
                     <span className="text-xs text-muted-foreground shrink-0 ml-3">
-                      {p.calories} kcal/100g
+                      {p.calories} {t('common.kcal')}/100g
                     </span>
                   </button>
                 ))}
                 {tab === "products" && filteredProducts.length === 0 && (
-                  <p className="px-3 py-4 text-sm text-muted-foreground text-center">No products found.</p>
+                  <p className="px-3 py-4 text-sm text-muted-foreground text-center">{t('familyMealModal.noProductsFound')}</p>
                 )}
                 {tab === "recipes" && data.recipes.length === 0 && (
                   <p className="px-3 py-4 text-sm text-muted-foreground text-center">
-                    No recipes yet. Create one in the Recipes section.
+                    {t('familyMealModal.noRecipesYet')}
                   </p>
                 )}
                 {tab === "recipes" && filteredRecipes.map(r => (
@@ -244,7 +252,7 @@ export function FamilyMealModal({
                     className="w-full text-left px-3 py-2.5 hover:bg-muted transition-colors flex items-center gap-2"
                   >
                     <span className="text-sm font-medium">{r.name}</span>
-                    <span className="text-xs text-muted-foreground">{r.ingredients.length} ingredients</span>
+                    <span className="text-xs text-muted-foreground">{r.ingredients.length} {t('familyMealModal.ingredientsCount')}</span>
                   </button>
                 ))}
               </div>
@@ -256,15 +264,15 @@ export function FamilyMealModal({
         {selected && familyMembers.length > 0 && (
           <div>
             <p className="text-xs font-medium text-muted-foreground mb-2">
-              Portions per family member
-              <span className="font-normal ml-1">(leave blank to skip)</span>
+              {t('familyMealModal.portionsLabel')}
+              <span className="font-normal ml-1">{t('familyMealModal.portionsHint')}</span>
             </p>
             <div className="border border-border rounded-lg overflow-hidden divide-y divide-border">
               {/* Header */}
               <div className="grid grid-cols-[1fr_100px_80px] px-3 py-2 bg-muted/40 text-xs font-medium text-muted-foreground">
-                <span>Member</span>
-                <span className="text-right">Grams</span>
-                <span className="text-right">Calories</span>
+                <span>{t('familyMealModal.memberColumn')}</span>
+                <span className="text-right">{t('familyMealModal.gramsColumn')}</span>
+                <span className="text-right">{t('familyMealModal.caloriesColumn')}</span>
               </div>
               {familyMembers.map(m => {
                 const cal = getPreviewCalories(m.id);
@@ -288,7 +296,7 @@ export function FamilyMealModal({
                         placeholder="0"
                         className="w-16 text-right px-2 py-1 rounded border border-border bg-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 tabular-nums"
                       />
-                      <span className="text-xs text-muted-foreground">g</span>
+                      <span className="text-xs text-muted-foreground">{t('common.grams')}</span>
                     </div>
                     <div className="text-right">
                       {cal !== null ? (

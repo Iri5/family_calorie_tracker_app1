@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "motion/react";
+import { useTranslation } from "react-i18next";
 import { AppData, User } from "../types";
 import { loadData, saveData } from "../lib/storage";
 import { uid } from "../lib/utils";
@@ -14,6 +15,7 @@ const HERO_IMAGE =
   "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=900&h=1200&fit=crop&auto=format&q=80";
 
 export function AuthPage({ onLogin }: AuthPageProps) {
+  const { t } = useTranslation();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -28,14 +30,14 @@ export function AuthPage({ onLogin }: AuthPageProps) {
       const u = data.users.find(
         u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
       );
-      if (!u) return setError("Invalid email or password.");
+      if (!u) return setError(t('auth.invalidCredentials'));
       onLogin(u.id, data);
     } else {
-      if (!name.trim()) return setError("Full name is required.");
-      if (!email.includes("@")) return setError("Enter a valid email address.");
-      if (password.length < 6) return setError("Password must be at least 6 characters.");
+      if (!name.trim()) return setError(t('auth.requiredField'));
+      if (!email.includes("@")) return setError(t('auth.invalidEmail'));
+      if (password.length < 6) return setError(t('auth.passwordMin'));
       if (data.users.find(u => u.email.toLowerCase() === email.toLowerCase()))
-        return setError("An account with this email already exists.");
+        return setError(t('auth.emailExists'));
       const u: User = {
         id: uid(),
         email: email.toLowerCase().trim(),
@@ -77,41 +79,41 @@ export function AuthPage({ onLogin }: AuthPageProps) {
               NutriFamily
             </p>
             <h1 className="text-2xl font-bold text-foreground leading-snug">
-              {mode === "login" ? "Welcome back" : "Create your account"}
+              {mode === "login" ? t('auth.welcomeBack') : t('auth.createAccount')}
             </h1>
             <p className="text-sm text-muted-foreground mt-1.5">
               {mode === "login"
-                ? "Sign in to continue tracking your family's nutrition."
-                : "Start managing nutrition goals for every family member."}
+                ? t('auth.signInSubtitle')
+                : t('auth.registerSubtitle')}
             </p>
           </div>
 
           {/* Form */}
           <div className="flex flex-col gap-4">
             {mode === "register" && (
-              <Field label="Full Name">
+              <Field label={t('auth.fullName')}>
                 <TInput
                   value={name}
                   onChange={setName}
-                  placeholder="Alex Johnson"
+                  placeholder={t('auth.namePlaceholder')}
                   onKeyDown={handleKey}
                 />
               </Field>
             )}
-            <Field label="Email Address">
+            <Field label={t('auth.email')}>
               <TInput
                 value={email}
                 onChange={setEmail}
-                placeholder="you@example.com"
+                placeholder={t('auth.emailPlaceholder')}
                 type="email"
                 onKeyDown={handleKey}
               />
             </Field>
-            <Field label="Password">
+            <Field label={t('auth.password')}>
               <TInput
                 value={password}
                 onChange={setPassword}
-                placeholder="••••••••"
+                placeholder={t('auth.passwordPlaceholder')}
                 type="password"
                 onKeyDown={handleKey}
               />
@@ -124,17 +126,17 @@ export function AuthPage({ onLogin }: AuthPageProps) {
             )}
 
             <Button onClick={submit} size="lg" fullWidth className="mt-1">
-              {mode === "login" ? "Sign In" : "Create Account"}
+              {mode === "login" ? t('auth.signIn') : t('auth.signUp')}
             </Button>
           </div>
 
           <p className="text-sm text-muted-foreground text-center mt-7">
-            {mode === "login" ? "No account yet? " : "Already have an account? "}
+            {mode === "login" ? t('auth.noAccount') : t('auth.hasAccount')}
             <button
               onClick={toggle}
               className="text-primary font-medium hover:underline"
             >
-              {mode === "login" ? "Register" : "Sign In"}
+              {mode === "login" ? t('auth.registerNow') : t('auth.loginNow')}
             </button>
           </p>
         </motion.div>
@@ -143,18 +145,18 @@ export function AuthPage({ onLogin }: AuthPageProps) {
       {/* Image panel */}
       <div className="hidden lg:block relative bg-muted overflow-hidden">
         <img
-          src={HERO_IMAGE}
-          alt="Nutritious food"
+          src="https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&h=260&fit=crop&auto=format&q=75"
+          alt={t('auth.heroAlt')}
           className="absolute inset-0 w-full h-full object-cover"
           loading="eager"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
         <div className="absolute bottom-12 left-10 right-10 text-white">
           <blockquote className="text-xl font-semibold leading-snug">
-            "Let food be thy medicine, and medicine be thy food."
+            {t('auth.quote')}
           </blockquote>
           <p className="text-white/60 text-sm mt-2">
-            Track every meal, for every member of your family.
+            {t('auth.quoteAuthor')}
           </p>
         </div>
       </div>

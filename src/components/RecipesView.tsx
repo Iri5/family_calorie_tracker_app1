@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useRef } from "react";
+import { useTranslation } from 'react-i18next';
+import { useProductName } from '../hooks/useProductName';
 import { Plus, Trash2, Pencil, Search, X } from "lucide-react";
 import { AppData, Recipe, RecipeIngredient } from "../types";
 import { recipePer100g, uid } from "../lib/utils";
@@ -20,6 +22,8 @@ type RecipeForm = {
 const emptyForm: RecipeForm = { name: "", description: "", ingredients: [] };
 
 export function RecipesView({ data, onUpdateData }: RecipesViewProps) {
+  const { t } = useTranslation();
+  const { getProductName } = useProductName();
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<RecipeForm>(emptyForm);
@@ -95,11 +99,13 @@ export function RecipesView({ data, onUpdateData }: RecipesViewProps) {
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-base font-semibold text-foreground">Recipes</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">{data.recipes.length} saved recipes</p>
+          <h1 className="text-base font-semibold text-foreground">{t('recipes.title')}</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {t('recipes.subtitle', { count: data.recipes.length })}
+          </p>
         </div>
         <Button size="sm" onClick={openAdd}>
-          <Plus size={13} /> New Recipe
+          <Plus size={13} /> {t('recipes.newRecipe')}
         </Button>
       </div>
 
@@ -107,12 +113,12 @@ export function RecipesView({ data, onUpdateData }: RecipesViewProps) {
         <div className="bg-card rounded-xl border border-border p-12 text-center">
           <img
             src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&h=200&fit=crop&auto=format&q=75"
-            alt="Cooking"
+            alt={t('recipes.cookingAlt')}
             className="w-36 h-24 object-cover rounded-lg mx-auto mb-4 opacity-80"
           />
-          <p className="font-semibold text-foreground">No recipes yet</p>
+          <p className="font-semibold text-foreground">{t('recipes.noRecipes')}</p>
           <p className="text-sm text-muted-foreground mt-1">
-            Build recipes from your product database and add them to meals.
+            {t('recipes.noRecipesHint')}
           </p>
         </div>
       ) : (
@@ -148,7 +154,7 @@ export function RecipesView({ data, onUpdateData }: RecipesViewProps) {
                 </div>
 
                 <div className="text-xs text-muted-foreground mb-2.5">
-                  {r.ingredients.length} ingredients · {total}g total
+                  {t('recipes.ingredientsCount', { count: r.ingredients.length })} · {t('recipes.totalWeight', { weight: total })}
                 </div>
 
                 <div className="flex flex-wrap gap-1.5 mb-3">
@@ -156,7 +162,7 @@ export function RecipesView({ data, onUpdateData }: RecipesViewProps) {
                     const p = data.products.find(x => x.id === ing.productId);
                     return p ? (
                       <span key={ing.productId} className="text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground">
-                        {p.name} {ing.grams}g
+                        {getProductName(p)} {ing.grams}{t('common.grams')}
                       </span>
                     ) : null;
                   })}
@@ -164,16 +170,16 @@ export function RecipesView({ data, onUpdateData }: RecipesViewProps) {
 
                 <div className="flex gap-2 text-xs flex-wrap">
                   <span className="bg-muted px-2.5 py-1 rounded font-medium tabular-nums">
-                    {p100.calories} kcal/100g
+                    {p100.calories} {t('common.kcal')}/{t('common.per100g')}
                   </span>
                   <span className="bg-blue-50 text-blue-700 px-2.5 py-1 rounded tabular-nums">
-                    P {p100.protein}g
+                    {t('nutrition.protein')} {p100.protein}{t('common.grams')}
                   </span>
                   <span className="bg-amber-50 text-amber-700 px-2.5 py-1 rounded tabular-nums">
-                    F {p100.fat}g
+                    {t('nutrition.fat')} {p100.fat}{t('common.grams')}
                   </span>
                   <span className="bg-orange-50 text-orange-700 px-2.5 py-1 rounded tabular-nums">
-                    C {p100.carbs}g
+                    {t('nutrition.carbs')} {p100.carbs}{t('common.grams')}
                   </span>
                 </div>
               </div>
@@ -186,30 +192,30 @@ export function RecipesView({ data, onUpdateData }: RecipesViewProps) {
       <Modal
         open={showForm}
         onClose={() => setShowForm(false)}
-        title={editId ? "Edit Recipe" : "New Recipe"}
+        title={editId ? t('recipes.editRecipe') : t('recipes.newRecipe')}
         wide
         footer={
           <>
-            <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setShowForm(false)}>{t('common.cancel')}</Button>
             <Button
               onClick={handleSave}
               disabled={!form.name.trim() || form.ingredients.length === 0}
             >
-              {editId ? "Save Changes" : "Create Recipe"}
+              {editId ? t('common.save') : t('recipes.createRecipe')}
             </Button>
           </>
         }
       >
         <div className="flex flex-col gap-4">
-          <Field label="Recipe Name">
-            <TInput value={form.name} onChange={v => setForm(f => ({ ...f, name: v }))} placeholder="e.g. Chicken & Rice Bowl" />
+          <Field label={t('recipes.form.name')}>
+            <TInput value={form.name} onChange={v => setForm(f => ({ ...f, name: v }))} placeholder={t('recipes.form.namePlaceholder')} />
           </Field>
-          <Field label="Description">
-            <TInput value={form.description} onChange={v => setForm(f => ({ ...f, description: v }))} placeholder="Optional description" />
+          <Field label={t('recipes.form.description')}>
+            <TInput value={form.description} onChange={v => setForm(f => ({ ...f, description: v }))} placeholder={t('recipes.form.descriptionPlaceholder')} />
           </Field>
 
           {/* Ingredients */}
-          <Field label="Ingredients">
+          <Field label={t('recipes.ingredients')}>
             <div className="flex flex-col gap-1.5 mb-2">
               {form.ingredients.map(ing => {
                 const p = data.products.find(x => x.id === ing.productId);
@@ -217,9 +223,11 @@ export function RecipesView({ data, onUpdateData }: RecipesViewProps) {
                 const rowKcal = Math.round(p.calories * ing.grams / 100);
                 return (
                   <div key={ing.productId} className="flex items-center gap-2 bg-muted/40 rounded-lg px-3 py-2">
-                    <span className="text-sm flex-1 font-medium truncate">{p.name}</span>
+                    <span className="text-sm flex-1 font-medium truncate">
+                      {getProductName(p)}
+                    </span>
                     <span className="text-xs text-muted-foreground tabular-nums hidden sm:block">
-                      {rowKcal} kcal
+                      {rowKcal} {t('common.kcal')}
                     </span>
                     <input
                       type="number"
@@ -228,7 +236,7 @@ export function RecipesView({ data, onUpdateData }: RecipesViewProps) {
                       min={1}
                       className="w-16 text-right px-2 py-1 rounded border border-border bg-card text-sm tabular-nums focus:outline-none focus:ring-1 focus:ring-primary/20"
                     />
-                    <span className="text-xs text-muted-foreground">g</span>
+                    <span className="text-xs text-muted-foreground">{t('common.grams')}</span>
                     <button
                       onClick={() => removeIngredient(ing.productId)}
                       className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
@@ -249,7 +257,7 @@ export function RecipesView({ data, onUpdateData }: RecipesViewProps) {
                 onChange={e => { setIngSearch(e.target.value); setShowIngList(true); }}
                 onFocus={() => setShowIngList(true)}
                 onBlur={() => setTimeout(() => setShowIngList(false), 150)}
-                placeholder="Search and add ingredient…"
+                placeholder={t('recipes.form.ingredientSearch')}
                 className="w-full pl-8 pr-3 py-2 rounded-lg border border-dashed border-border bg-muted/30 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none"
               />
               {showIngList && ingSearch && filteredIng.length > 0 && (
@@ -260,8 +268,8 @@ export function RecipesView({ data, onUpdateData }: RecipesViewProps) {
                       onMouseDown={() => addIngredient(p.id)}
                       className="w-full text-left px-3 py-2.5 text-sm hover:bg-muted transition-colors flex justify-between items-center"
                     >
-                      <span className="font-medium">{p.name}</span>
-                      <span className="text-xs text-muted-foreground">{p.calories} kcal/100g</span>
+                      <span className="font-medium">{getProductName(p)}</span>
+                      <span className="text-xs text-muted-foreground">{p.calories} {t('common.kcal')}/100g</span>
                     </button>
                   ))}
                 </div>
@@ -272,17 +280,17 @@ export function RecipesView({ data, onUpdateData }: RecipesViewProps) {
           {/* Preview */}
           {preview && (
             <div className="bg-muted/40 rounded-lg px-3.5 py-3">
-              <p className="text-xs font-medium text-muted-foreground mb-2">Recipe nutrition preview</p>
+              <p className="text-xs font-medium text-muted-foreground mb-2">{t('recipes.form.preview')}</p>
               <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs tabular-nums">
                 <span className="text-muted-foreground">
-                  Total: <strong className="text-foreground">{preview.total}g</strong>
+                  {t('recipes.totalWeightLabel')}: <strong className="text-foreground">{preview.total}{t('common.grams')}</strong>
                 </span>
                 <span className="text-muted-foreground">
-                  Per 100g: <strong className="text-foreground">{preview.per100.calories} kcal</strong>
+                  {t('recipes.per100gLabel')}: <strong className="text-foreground">{preview.per100.calories} {t('common.kcal')}</strong>
                 </span>
-                <span className="text-blue-600">P {preview.per100.protein}g</span>
-                <span className="text-amber-600">F {preview.per100.fat}g</span>
-                <span className="text-orange-600">C {preview.per100.carbs}g</span>
+                <span className="text-blue-600">{t('nutrition.protein')} {preview.per100.protein}{t('common.grams')}</span>
+                <span className="text-amber-600">{t('nutrition.fat')} {preview.per100.fat}{t('common.grams')}</span>
+                <span className="text-orange-600">{t('nutrition.carbs')} {preview.per100.carbs}{t('common.grams')}</span>
               </div>
             </div>
           )}

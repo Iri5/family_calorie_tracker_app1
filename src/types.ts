@@ -25,10 +25,11 @@ export interface FamilyMember {
 export interface Product {
   id: string;
   name: string;
+  nameEn?: string; 
   description: string;
   category: string;
   subcategory: string;
-  calories: number;   // per 100g
+  calories: number;
   protein: number;
   fat: number;
   carbs: number;
@@ -39,7 +40,7 @@ export interface Product {
 export interface ProductCategory {
   id: string;
   name: string;
-  subcategories: string[];
+  subcategories: { id: string; name: string }[]; // ← было string[], стало объектами
   image: string;
 }
 

@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "motion/react";
+import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { AppData, FamilyMember, User } from "../types";
 import {
@@ -29,17 +30,19 @@ export function DashboardView({
   onSelectMember,
   onAddFamilyMeal,
 }: DashboardViewProps) {
+  const { t } = useTranslation();
+
   if (user.familyMembers.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-32 gap-4 text-center">
         <img
           src="https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&h=260&fit=crop&auto=format&q=75"
-          alt="Family nutrition"
+          alt={t('dashboard.noMembersAlt')}
           className="w-48 h-32 object-cover rounded-xl opacity-70"
         />
-        <h2 className="text-lg font-semibold text-foreground">No family members yet</h2>
+        <h2 className="text-lg font-semibold text-foreground">{t('dashboard.noMembers')}</h2>
         <p className="text-sm text-muted-foreground max-w-xs">
-          Go to Family to add members and set their daily nutrition goals.
+          {t('dashboard.noMembersHint')}
         </p>
       </div>
     );
@@ -50,8 +53,8 @@ export function DashboardView({
       {/* Top bar */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-base font-semibold text-foreground">Family Overview</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Daily nutrition summary</p>
+          <h1 className="text-base font-semibold text-foreground">{t('dashboard.title')}</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">{t('dashboard.subtitle')}</p>
         </div>
         <div className="flex items-center gap-3">
           {/* Date navigator */}
@@ -74,7 +77,7 @@ export function DashboardView({
           </div>
 
           <Button size="sm" onClick={onAddFamilyMeal}>
-            <Plus size={13} /> Add Meal
+            <Plus size={13} /> {t('dashboard.addMeal')}
           </Button>
         </div>
       </div>
@@ -106,6 +109,7 @@ function MemberCard({
   date: string;
   onClick: () => void;
 }) {
+  const { t } = useTranslation();
   const n = memberDayNutrition(member.id, date, data.meals, data.products, data.recipes);
   const cg = getCalGoal(member);
   const mg = getMacroGoals(member);
@@ -131,15 +135,17 @@ function MemberCard({
         <div className="flex-1 min-w-0 pt-0.5">
           <div className="font-semibold text-sm text-foreground">{member.name}</div>
           <div className="text-xs text-muted-foreground mt-0.5">
-            {member.age} y · Goal {cg} kcal
+            {member.age} {t('dashboard.yearsOld')} · {t('dashboard.goal')} {cg} {t('common.kcal')}
           </div>
           <div
             className={`text-xs font-medium mt-1 tabular-nums ${
               over ? "text-destructive" : "text-primary"
             }`}
           >
-            {n.calories} consumed ·{" "}
-            {over ? `${Math.abs(remaining)} over` : `${remaining} remaining`}
+            {n.calories} {t('dashboard.consumed')} ·{" "}
+            {over
+              ? `${Math.abs(remaining)} ${t('dashboard.over')}`
+              : `${remaining} ${t('dashboard.remaining')}`}
           </div>
         </div>
         <ChevronRight size={14} className="text-muted-foreground shrink-0 mt-1" />
@@ -147,9 +153,9 @@ function MemberCard({
 
       {/* Macro bars */}
       <div className="flex flex-col gap-2">
-        <MacroBar label="Protein" value={n.protein} goal={mg.protein} colorClass="bg-blue-500" />
-        <MacroBar label="Fat" value={n.fat} goal={mg.fat} colorClass="bg-amber-500" />
-        <MacroBar label="Carbs" value={n.carbs} goal={mg.carbs} colorClass="bg-orange-500" />
+        <MacroBar label={t('nutrition.protein')} value={n.protein} goal={mg.protein} colorClass="bg-blue-500" />
+        <MacroBar label={t('nutrition.fat')} value={n.fat} goal={mg.fat} colorClass="bg-amber-500" />
+        <MacroBar label={t('nutrition.carbs')} value={n.carbs} goal={mg.carbs} colorClass="bg-orange-500" />
       </div>
     </motion.button>
   );

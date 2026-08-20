@@ -1,6 +1,7 @@
 import React from "react";
 import { Home, Users, Package, BookOpen, LogOut } from "lucide-react";
 import { User, View } from "../types";
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 interface SidebarProps {
   view: View;
@@ -19,6 +20,9 @@ const NAV: { view: View; Icon: React.FC<{ size?: number }>; label: string }[] = 
 export function Sidebar({ view, onNav, user, onLogout }: SidebarProps) {
   return (
     <aside className="w-52 bg-sidebar border-r border-sidebar-border flex flex-col h-full shrink-0">
+      <div className="p-3 border-t border-border">
+  <LanguageSwitcher />
+</div>
       {/* Brand */}
       <div className="px-5 pt-6 pb-5">
         <span className="text-xs font-bold text-primary uppercase tracking-widest">

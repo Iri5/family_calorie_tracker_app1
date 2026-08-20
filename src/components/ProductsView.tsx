@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { useTranslation } from 'react-i18next';
+import { useProductName } from '../hooks/useProductName';
 import { Search, X, Plus, Pencil, Trash2, Barcode } from "lucide-react";
 import { AppData, Product } from "../types";
 import { uid } from "../lib/utils";
@@ -19,6 +21,8 @@ const emptyForm = {
 type ProductForm = typeof emptyForm;
 
 export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
+  const { t } = useTranslation();
+  const { getProductName } = useProductName();
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>("all");
@@ -102,15 +106,17 @@ export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-base font-semibold text-foreground">Products</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">{data.products.length} items · values per 100g</p>
+          <h1 className="text-base font-semibold text-foreground">{t('products.title')}</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {t('products.subtitle', { count: data.products.length })}
+          </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => setShowBarcodeModal(true)}>
-            <Barcode size={13} /> Scan Barcode
+            <Barcode size={13} /> {t('products.scanBarcode')}
           </Button>
           <Button size="sm" onClick={() => openAdd()}>
-            <Plus size={13} /> Add Product
+            <Plus size={13} /> {t('products.addProduct')}
           </Button>
         </div>
       </div>
@@ -121,7 +127,7 @@ export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Search products…"
+          placeholder={t('products.search')}
           className="w-full pl-9 pr-9 py-2.5 rounded-lg border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
         {search && (
@@ -147,7 +153,7 @@ export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
                   : "border-border bg-card text-muted-foreground hover:bg-muted",
               ].join(" ")}
             >
-              All
+              {t('common.all')}
             </button>
             {CATEGORIES.filter(c => c.id !== "custom").map(cat => (
               <button
@@ -166,13 +172,13 @@ export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
                 {cat.image ? (
                   <img
                     src={cat.image}
-                    alt={cat.name}
+                    alt={t(`categories.${cat.id}`)}
                     className="w-full h-14 object-cover"
                   />
                 ) : (
                   <div className="w-full h-14 bg-muted" />
                 )}
-                <div className="px-2 py-1.5 truncate">{cat.name}</div>
+                <div className="px-2 py-1.5 truncate">{t(`categories.${cat.id}`)}</div>
               </button>
             ))}
           </div>
@@ -189,36 +195,37 @@ export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
                     : "bg-muted text-muted-foreground hover:bg-secondary",
                 ].join(" ")}
               >
-                All
+                {t('common.all')}
               </button>
               {subcategories.map(sub => (
                 <button
-                  key={sub}
-                  onClick={() => setSelectedSubcategory(sub)}
+                  key={sub.id}  // ← теперь sub.id
+                  onClick={() => setSelectedSubcategory(sub.id)}  // ← теперь sub.id
                   className={[
                     "px-3 py-1 rounded-full text-xs font-medium transition-colors",
-                    selectedSubcategory === sub
+                    selectedSubcategory === sub.id  // ← теперь sub.id
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted text-muted-foreground hover:bg-secondary",
                   ].join(" ")}
                 >
-                  {sub}
+                  {t(`subcategories.${sub.id}`)}  // ← теперь через перевод
                 </button>
               ))}
             </div>
           )}
         </div>
-      )}
+      )
+      }
 
       {/* Products table */}
       <div className="bg-card rounded-xl border border-border overflow-hidden">
         {/* Table header */}
         <div className="hidden sm:grid sm:grid-cols-[1fr_64px_72px_60px_72px_60px] px-4 py-2.5 bg-muted/40 border-b border-border text-xs font-medium text-muted-foreground">
-          <span>Product</span>
-          <span className="text-right">Kcal</span>
-          <span className="text-right">Protein</span>
-          <span className="text-right">Fat</span>
-          <span className="text-right">Carbs</span>
+          <span>{t('products.table.product')}</span>
+          <span className="text-right">{t('nutrition.calories')}</span>
+          <span className="text-right">{t('nutrition.protein')}</span>
+          <span className="text-right">{t('nutrition.fat')}</span>
+          <span className="text-right">{t('nutrition.carbs')}</span>
           <span />
         </div>
 
@@ -236,24 +243,32 @@ export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
                     className="w-5 h-5 rounded object-cover shrink-0 opacity-70"
                   />
                 )}
-                <span className="text-sm font-medium text-foreground truncate">{p.name}</span>
+                <span className="text-sm font-medium text-foreground truncate">
+                  {getProductName(p)}
+                </span>
                 {p.isCustom && (
                   <span className="text-[10px] font-semibold bg-primary/10 text-primary px-1.5 py-0.5 rounded shrink-0">
-                    Custom
+                    {t('products.custom')}
                   </span>
                 )}
               </div>
               {p.description && (
                 <div className="text-xs text-muted-foreground truncate mt-0.5">{p.description}</div>
               )}
+
+              {/* ПОДКАТЕГОРИЯ - ИСПРАВЛЕНО */}
+              <div className="text-xs text-muted-foreground truncate mt-0.5">
+                {p.subcategory ? t(`subcategories.${p.subcategory}`) : ''}
+              </div>
+
               <div className="sm:hidden text-xs text-muted-foreground tabular-nums mt-0.5">
-                {p.calories} kcal · P {p.protein}g · F {p.fat}g · C {p.carbs}g
+                {p.calories} {t('common.kcal')} · {t('nutrition.protein')} {p.protein}{t('common.grams')} · {t('nutrition.fat')} {p.fat}{t('common.grams')} · {t('nutrition.carbs')} {p.carbs}{t('common.grams')}
               </div>
             </div>
             <span className="hidden sm:block text-sm text-right tabular-nums">{p.calories}</span>
-            <span className="hidden sm:block text-sm text-right tabular-nums text-blue-600">{p.protein}g</span>
-            <span className="hidden sm:block text-sm text-right tabular-nums text-amber-600">{p.fat}g</span>
-            <span className="hidden sm:block text-sm text-right tabular-nums text-orange-600">{p.carbs}g</span>
+            <span className="hidden sm:block text-sm text-right tabular-nums text-blue-600">{p.protein}{t('common.grams')}</span>
+            <span className="hidden sm:block text-sm text-right tabular-nums text-amber-600">{p.fat}{t('common.grams')}</span>
+            <span className="hidden sm:block text-sm text-right tabular-nums text-orange-600">{p.carbs}{t('common.grams')}</span>
             <div className="flex gap-1 justify-end shrink-0">
               {p.isCustom ? (
                 <>
@@ -281,7 +296,7 @@ export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
 
         {filtered.length === 0 && (
           <div className="px-4 py-10 text-center text-sm text-muted-foreground">
-            No products found.
+            {t('products.noProducts')}
           </div>
         )}
       </div>
@@ -290,56 +305,58 @@ export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
       <Modal
         open={showForm}
         onClose={() => setShowForm(false)}
-        title={editId ? "Edit Product" : "New Product"}
+        title={editId ? t('products.editProduct') : t('products.newProduct')}
         footer={
           <>
-            <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setShowForm(false)}>{t('common.cancel')}</Button>
             <Button onClick={handleSave} disabled={!form.name.trim() || !form.calories}>
-              {editId ? "Save Changes" : "Add Product"}
+              {editId ? t('common.save') : t('products.addProduct')}
             </Button>
           </>
         }
       >
         <div className="flex flex-col gap-4">
-          <Field label="Product Name">
-            <TInput value={form.name} onChange={v => setF("name", v)} placeholder="e.g. Quinoa, cooked" />
+          <Field label={t('products.form.name')}>
+            <TInput value={form.name} onChange={v => setF("name", v)} placeholder={t('products.form.namePlaceholder')} />
           </Field>
-          <Field label="Description">
-            <TInput value={form.description} onChange={v => setF("description", v)} placeholder="Optional preparation note" />
+          <Field label={t('products.form.description')}>
+            <TInput value={form.description} onChange={v => setF("description", v)} placeholder={t('products.form.descriptionPlaceholder')} />
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Category">
+            <Field label={t('products.form.category')}>
               <Sel value={form.category} onChange={v => { setF("category", v); setF("subcategory", ""); }}>
                 {CATEGORIES.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
+                  <option key={c.id} value={c.id}>{t(`categories.${c.id}`)}</option>
                 ))}
               </Sel>
             </Field>
-            <Field label="Subcategory">
+            <Field label={t('products.form.subcategory')}>
               <Sel value={form.subcategory} onChange={v => setF("subcategory", v)}>
-                <option value="">— None —</option>
-                {(CATEGORIES.find(c => c.id === form.category)?.subcategories ?? []).map(s => (
-                  <option key={s} value={s}>{s}</option>
+                <option value="">— {t('common.none')} —</option>
+                {(CATEGORIES.find(c => c.id === form.category)?.subcategories ?? []).map(sub => (
+                  <option key={sub.id} value={sub.id}>  // ← теперь sub.id
+                    {t(`subcategories.${sub.id}`)}  // ← теперь через перевод
+                  </option>
                 ))}
               </Sel>
             </Field>
           </div>
-          <Field label="Barcode (optional)">
-            <TInput value={form.barcode} onChange={v => setF("barcode", v)} placeholder="e.g. 5449000000439" />
+          <Field label={t('products.form.barcode')}>
+            <TInput value={form.barcode} onChange={v => setF("barcode", v)} placeholder={t('products.form.barcodePlaceholder')} />
           </Field>
           <div className="bg-muted/40 rounded-lg p-3.5">
-            <p className="text-xs font-medium text-muted-foreground mb-3">Nutritional values per 100g</p>
+            <p className="text-xs font-medium text-muted-foreground mb-3">{t('products.form.per100g')}</p>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Calories (kcal)">
+              <Field label={t('products.form.calories')}>
                 <NInput value={form.calories} onChange={v => setF("calories", v)} min={0} step={0.1} placeholder="0" />
               </Field>
-              <Field label="Protein (g)">
+              <Field label={t('products.form.protein')}>
                 <NInput value={form.protein} onChange={v => setF("protein", v)} min={0} step={0.1} placeholder="0" />
               </Field>
-              <Field label="Fat (g)">
+              <Field label={t('products.form.fat')}>
                 <NInput value={form.fat} onChange={v => setF("fat", v)} min={0} step={0.1} placeholder="0" />
               </Field>
-              <Field label="Carbohydrates (g)">
+              <Field label={t('products.form.carbs')}>
                 <NInput value={form.carbs} onChange={v => setF("carbs", v)} min={0} step={0.1} placeholder="0" />
               </Field>
             </div>
@@ -348,13 +365,15 @@ export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
       </Modal>
 
       {/* Barcode Modal */}
-      {showBarcodeModal && (
-        <BarcodeModal
-          onScan={handleBarcodeFound}
-          onClose={() => setShowBarcodeModal(false)}
-        />
-      )}
-    </div>
+      {
+        showBarcodeModal && (
+          <BarcodeModal
+            onScan={handleBarcodeFound}
+            onClose={() => setShowBarcodeModal(false)}
+          />
+        )
+      }
+    </div >
   );
 }
 
@@ -367,6 +386,7 @@ function BarcodeModal({
   onScan: (barcode: string) => void;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -412,12 +432,12 @@ function BarcodeModal({
             stopCamera();
             onScan(results[0].rawValue);
           }
-        } catch {}
+        } catch { }
       }, 400);
     } catch {
-      setCameraError("Camera access was denied. Please enter the barcode manually.");
+      setCameraError(t('products.barcodeScan.cameraError'));
     }
-  }, [hasBarcodeAPI, onScan, stopCamera]);
+  }, [hasBarcodeAPI, onScan, stopCamera, t]);
 
   useEffect(() => {
     if (hasBarcodeAPI) startCamera();
@@ -436,7 +456,7 @@ function BarcodeModal({
         <div className="flex items-center justify-between px-4 py-3.5 border-b border-border">
           <div className="flex items-center gap-2">
             <Barcode size={15} className="text-primary" />
-            <span className="font-semibold text-sm">Scan Barcode</span>
+            <span className="font-semibold text-sm">{t('products.barcodeScan.title')}</span>
           </div>
           <button onClick={onClose} className="p-1 rounded text-muted-foreground hover:text-foreground">
             <X size={14} />
@@ -467,7 +487,7 @@ function BarcodeModal({
               </div>
               {!cameraActive && !cameraError && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/60">
-                  <span className="text-white text-sm">Starting camera…</span>
+                  <span className="text-white text-sm">{t('products.barcodeScan.startingCamera')}</span>
                 </div>
               )}
             </div>
@@ -481,21 +501,21 @@ function BarcodeModal({
 
           {!hasBarcodeAPI && (
             <div className="bg-muted rounded-lg px-3 py-2.5 text-xs text-muted-foreground">
-              Camera barcode scanning is not supported in this browser. Please enter the barcode manually.
+              {t('products.barcodeScan.notSupported')}
             </div>
           )}
 
           {/* Manual input */}
           <div>
             <p className="text-xs font-medium text-muted-foreground mb-2">
-              {hasBarcodeAPI && !cameraError ? "Or enter manually" : "Enter barcode number"}
+              {hasBarcodeAPI && !cameraError ? t('products.barcodeScan.orEnterManually') : t('products.barcodeScan.enterManually')}
             </p>
             <div className="flex gap-2">
               <input
                 value={manualBarcode}
                 onChange={e => setManualBarcode(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && handleManualSubmit()}
-                placeholder="e.g. 5449000000439"
+                placeholder={t('products.barcodeScan.barcodePlaceholder')}
                 className="flex-1 px-3 py-2 rounded-lg border border-border bg-input-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 tabular-nums"
                 autoFocus={!hasBarcodeAPI || !!cameraError}
               />
@@ -504,13 +524,13 @@ function BarcodeModal({
                 onClick={handleManualSubmit}
                 disabled={!manualBarcode.trim()}
               >
-                Look Up
+                {t('products.barcodeScan.lookup')}
               </Button>
             </div>
           </div>
 
           <p className="text-[11px] text-muted-foreground text-center">
-            If the barcode is not in the database, you can add the product manually.
+            {t('products.barcodeScan.hint')}
           </p>
         </div>
       </div>
