@@ -71,7 +71,7 @@ export function MemberDetailView({
           onClick={onBack}
           className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
-          <ArrowLeft size={14} /> All members
+          <ArrowLeft size={14} /> Все участники
         </button>
         <div className="flex items-center gap-0.5 border border-border rounded-lg overflow-hidden">
           <button
@@ -104,21 +104,21 @@ export function MemberDetailView({
           <div className="flex-1 min-w-0">
             <h2 className="font-semibold text-base text-foreground">{member.name}</h2>
             <p className="text-xs text-muted-foreground">
-              {member.age} y · {member.weight} kg · {member.height} cm · Goal {cg} kcal/day
+              {member.age} лет · {member.weight} кг · {member.height} см · Цель {cg} ккал/день
             </p>
             <div className={`text-sm font-semibold mt-1.5 tabular-nums ${overColor}`}>
-              {dayN.calories} kcal consumed
+              {dayN.calories} ккал потреблено
               <span className="font-normal text-muted-foreground ml-2 text-xs">
-                {over ? `· ${Math.abs(remaining)} over limit` : `· ${remaining} remaining`}
+                {over ? `· ${Math.abs(remaining)} превышение` : `· ${remaining} осталось`}
               </span>
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-3 gap-4">
-          <MacroBar label="Protein" value={dayN.protein} goal={mg.protein} colorClass="bg-blue-500" />
-          <MacroBar label="Fat" value={dayN.fat} goal={mg.fat} colorClass="bg-amber-500" />
-          <MacroBar label="Carbs" value={dayN.carbs} goal={mg.carbs} colorClass="bg-orange-500" />
+          <MacroBar label="Белки" value={dayN.protein} goal={mg.protein} colorClass="bg-blue-500" />
+          <MacroBar label="Жиры" value={dayN.fat} goal={mg.fat} colorClass="bg-amber-500" />
+          <MacroBar label="Углеводы" value={dayN.carbs} goal={mg.carbs} colorClass="bg-orange-500" />
         </div>
       </div>
 
@@ -135,15 +135,15 @@ export function MemberDetailView({
           <div key={type} className="bg-card rounded-xl border border-border overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-foreground">{label}</span>
+                <span className="text-sm font-semibold text-foreground">{label}</span>//////////
                 {mealN.calories > 0 && (
                   <span className="text-xs text-muted-foreground tabular-nums">
-                    {mealN.calories} kcal
+                    {mealN.calories} ккал
                   </span>
                 )}
               </div>
               <Button variant="ghost" size="xs" onClick={() => setAddingTo(type)}>
-                <Plus size={12} /> Add Food
+                <Plus size={12} /> Добавить еду
               </Button>
             </div>
 
@@ -153,7 +153,7 @@ export function MemberDetailView({
                   onClick={() => setAddingTo(type)}
                   className="w-full px-4 py-3 text-left text-xs text-muted-foreground hover:bg-muted/40 transition-colors flex items-center gap-2"
                 >
-                  <Plus size={11} className="opacity-40" /> Tap to add food
+                  <Plus size={11} className="opacity-40" /> Нажмите, чтобы добавить
                 </button>
               ) : (
                 log.entries.map(entry => {
@@ -169,19 +169,19 @@ export function MemberDetailView({
                     >
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-foreground truncate">
-                          {name ?? "Unknown"}
+                          {name ?? "Неизвестно"} //////////////////////////////////////////////
                           {entry.type === "recipe" && (
                             <span className="ml-1.5 text-xs text-muted-foreground font-normal">
-                              (recipe)
+                              (рецепт)
                             </span>
                           )}
                         </div>
                         <div className="text-xs text-muted-foreground tabular-nums">
-                          {entry.grams}g · P {n.protein}g · F {n.fat}g · C {n.carbs}g
+                          {entry.grams}г · .Б {n.protein}г · Ж {n.fat}г · У {n.carbs}г
                         </div>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
-                        <span className="text-sm font-medium tabular-nums">{n.calories} kcal</span>
+                        <span className="text-sm font-medium tabular-nums">{n.calories} ккал</span>
                         <button
                           onClick={() => removeEntry(type, entry.id)}
                           className="p-1 rounded opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all"
@@ -266,7 +266,7 @@ function AddFoodModal({
       <div className="absolute inset-0 bg-black/25 backdrop-blur-[1px]" onClick={onClose} />
       <div className="relative z-10 w-full sm:max-w-md bg-card rounded-t-xl sm:rounded-xl shadow-2xl border border-border flex flex-col max-h-[85vh]">
         <div className="flex items-center justify-between px-4 py-3.5 border-b border-border shrink-0">
-          <span className="font-semibold text-sm">Add Food</span>
+          <span className="font-semibold text-sm">Добавить еду</span>
           <button onClick={onClose} className="p-1 text-muted-foreground hover:text-foreground rounded">
             <X size={14} />
           </button>
@@ -274,7 +274,7 @@ function AddFoodModal({
 
         {/* Tabs */}
         <div className="flex gap-1.5 px-4 pt-3 shrink-0">
-          {(["products", "recipes"] as const).map(t => (
+          {(["products", "recipes"] as const).map(t => ( /////////////////////////////////
             <button
               key={t}
               onClick={() => { setTab(t); setSelected(null); }}
@@ -294,7 +294,7 @@ function AddFoodModal({
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder={`Search ${tab}…`}
+            placeholder={`Поиск ${tab}…`}
             className="w-full pl-8 pr-8 py-2 rounded-lg border border-border bg-input-background text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
           {search && (
@@ -321,17 +321,17 @@ function AddFoodModal({
               ].join(" ")}
             >
               <div>
-                <div className="text-sm font-medium">{p.name}</div>
+                <div className="text-sm font-medium">{p.name}</div>////////////////////
                 <div className="text-xs text-muted-foreground">{p.description}</div>
               </div>
-              <span className="text-xs text-muted-foreground shrink-0 ml-2">{p.calories} kcal</span>
+              <span className="text-xs text-muted-foreground shrink-0 ml-2">{p.calories} ккал</span>
             </button>
           ))}
           {tab === "products" && filteredP.length === 0 && (
-            <p className="text-center text-xs text-muted-foreground py-6">No products found.</p>
+            <p className="text-center text-xs text-muted-foreground py-6">Продукты не найдены.</p>
           )}
           {tab === "recipes" && recipes.length === 0 && (
-            <p className="text-center text-xs text-muted-foreground py-6">No recipes yet.</p>
+            <p className="text-center text-xs text-muted-foreground py-6">Пока нет рецептов.</p>
           )}
           {tab === "recipes" && filteredR.map(r => (
             <button
@@ -355,10 +355,10 @@ function AddFoodModal({
           <div className="px-4 py-3 border-t border-border bg-muted/20 shrink-0">
             <div className="flex items-center gap-3">
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium truncate">{selProduct?.name ?? selRecipe?.name}</div>
+                <div className="text-sm font-medium truncate">{selProduct?.name ?? selRecipe?.name}</div>/////////////////
                 {preview && (
                   <div className="text-xs text-muted-foreground tabular-nums">
-                    {preview.calories} kcal · P {Math.round(preview.protein * 10) / 10}g
+                    {preview.calories} ккал · Б {Math.round(preview.protein * 10) / 10}г
                   </div>
                 )}
               </div>
@@ -369,13 +369,13 @@ function AddFoodModal({
                 min={1}
                 className="w-16 text-right px-2 py-1.5 rounded border border-border bg-card text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
-              <span className="text-xs text-muted-foreground">g</span>
+              <span className="text-xs text-muted-foreground">г</span>
               <Button
                 size="sm"
                 onClick={handleAdd}
                 disabled={!grams || parseFloat(grams) <= 0}
               >
-                <Check size={12} /> Add
+                <Check size={12} /> Добавить
               </Button>
             </div>
           </div>

@@ -115,16 +115,16 @@ export function FamilyMealModal({
     <Modal
       open={open}
       onClose={onClose}
-      title="Add Family Meal"
+      title="Добавить приём для семьи"
       subtitle={date}
       wide
       footer={
         <>
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            Отмена
           </Button>
           <Button onClick={handleLog} disabled={!canLog}>
-            Log for {totalLogged} member{totalLogged !== 1 ? "s" : ""}
+            Добавить для {totalLogged} участника 
           </Button>
         </>
       }
@@ -132,7 +132,7 @@ export function FamilyMealModal({
       <div className="flex flex-col gap-5">
         {/* Meal type */}
         <div>
-          <p className="text-xs font-medium text-muted-foreground mb-2">Meal</p>
+          <p className="text-xs font-medium text-muted-foreground mb-2">Приём пищи</p>
           <div className="flex gap-1.5">
             {MEAL_CONFIG.map(({ type, label }) => (
               <button
@@ -153,16 +153,16 @@ export function FamilyMealModal({
 
         {/* Food selection */}
         <div>
-          <p className="text-xs font-medium text-muted-foreground mb-2">Food Item</p>
+          <p className="text-xs font-medium text-muted-foreground mb-2">Продукт/рецепт</p>
 
           {selected ? (
             <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-primary/25 bg-accent/40">
               <Check size={14} className="text-primary shrink-0" />
               <div className="flex-1 min-w-0">
-                <span className="text-sm font-medium">{foodName}</span>
+                <span className="text-sm font-medium">{foodName}</span> ///////аамаавиавиаи
                 {selected.type === "product" && (
                   <span className="text-xs text-muted-foreground ml-2">
-                    {(selected.item as Product).calories} kcal/100g
+                    {(selected.item as Product).calories} ккал/100г
                   </span>
                 )}
               </div>
@@ -177,7 +177,7 @@ export function FamilyMealModal({
             <div>
               {/* Tabs */}
               <div className="flex gap-1 mb-2">
-                {(["products", "recipes"] as const).map(t => (
+                {(["products", "recipes"] as const).map(t => ( ////////////////////
                   <button
                     key={t}
                     onClick={() => setTab(t)}
@@ -199,7 +199,7 @@ export function FamilyMealModal({
                 <input
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  placeholder={`Search ${tab}…`}
+                  placeholder={`Поиск ${tab}…`}
                   className="w-full pl-8 pr-8 py-2 rounded-lg border border-border bg-input-background text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
                 {search && (
@@ -221,20 +221,20 @@ export function FamilyMealModal({
                     className="w-full text-left px-3 py-2.5 hover:bg-muted transition-colors flex items-center justify-between"
                   >
                     <div>
-                      <span className="text-sm font-medium">{p.name}</span>
+                      <span className="text-sm font-medium">{p.name}</span> ///////////
                       <span className="text-xs text-muted-foreground ml-2">{p.description}</span>
                     </div>
                     <span className="text-xs text-muted-foreground shrink-0 ml-3">
-                      {p.calories} kcal/100g
+                      {p.calories} ккал/100г
                     </span>
                   </button>
                 ))}
                 {tab === "products" && filteredProducts.length === 0 && (
-                  <p className="px-3 py-4 text-sm text-muted-foreground text-center">No products found.</p>
+                  <p className="px-3 py-4 text-sm text-muted-foreground text-center">Продукты не найдены.</p>
                 )}
                 {tab === "recipes" && data.recipes.length === 0 && (
                   <p className="px-3 py-4 text-sm text-muted-foreground text-center">
-                    No recipes yet. Create one in the Recipes section.
+                    Пока нет рецептов. Создайте их в разделе «Рецепты».
                   </p>
                 )}
                 {tab === "recipes" && filteredRecipes.map(r => (
@@ -244,7 +244,7 @@ export function FamilyMealModal({
                     className="w-full text-left px-3 py-2.5 hover:bg-muted transition-colors flex items-center gap-2"
                   >
                     <span className="text-sm font-medium">{r.name}</span>
-                    <span className="text-xs text-muted-foreground">{r.ingredients.length} ingredients</span>
+                    <span className="text-xs text-muted-foreground">{r.ingredients.length} ингредиентов</span>
                   </button>
                 ))}
               </div>
@@ -256,15 +256,15 @@ export function FamilyMealModal({
         {selected && familyMembers.length > 0 && (
           <div>
             <p className="text-xs font-medium text-muted-foreground mb-2">
-              Portions per family member
-              <span className="font-normal ml-1">(leave blank to skip)</span>
+              Порции для каждого члена семьи
+              <span className="font-normal ml-1">(оставьте пустым, чтобы пропустить)</span>
             </p>
             <div className="border border-border rounded-lg overflow-hidden divide-y divide-border">
               {/* Header */}
               <div className="grid grid-cols-[1fr_100px_80px] px-3 py-2 bg-muted/40 text-xs font-medium text-muted-foreground">
-                <span>Member</span>
-                <span className="text-right">Grams</span>
-                <span className="text-right">Calories</span>
+                <span>Участник</span>
+                <span className="text-right">Граммы</span>
+                <span className="text-right">Калории</span>
               </div>
               {familyMembers.map(m => {
                 const cal = getPreviewCalories(m.id);
@@ -288,7 +288,7 @@ export function FamilyMealModal({
                         placeholder="0"
                         className="w-16 text-right px-2 py-1 rounded border border-border bg-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 tabular-nums"
                       />
-                      <span className="text-xs text-muted-foreground">g</span>
+                      <span className="text-xs text-muted-foreground">г</span>
                     </div>
                     <div className="text-right">
                       {cal !== null ? (

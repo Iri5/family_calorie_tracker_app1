@@ -25,6 +25,7 @@ export interface FamilyMember {
 export interface Product {
   id: string;
   name: string;
+  nameEn?: string;
   description: string;
   category: string;
   subcategory: string;
@@ -39,7 +40,7 @@ export interface Product {
 export interface ProductCategory {
   id: string;
   name: string;
-  subcategories: string[];
+  subcategories: { id: string; name: string }[];
   image: string;
 }
 

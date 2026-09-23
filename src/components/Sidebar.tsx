@@ -10,10 +10,10 @@ interface SidebarProps {
 }
 
 const NAV: { view: View; Icon: React.FC<{ size?: number }>; label: string }[] = [
-  { view: "dashboard", Icon: Home, label: "Dashboard" },
-  { view: "family", Icon: Users, label: "Family" },
-  { view: "products", Icon: Package, label: "Products" },
-  { view: "recipes", Icon: BookOpen, label: "Recipes" },
+  { view: "dashboard", Icon: Home, label: "Главная" },
+  { view: "family", Icon: Users, label: "Семья" },
+  { view: "products", Icon: Package, label: "Продукты" },
+  { view: "recipes", Icon: BookOpen, label: "Рецепты" },
 ];
 
 export function Sidebar({ view, onNav, user, onLogout }: SidebarProps) {

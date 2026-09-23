@@ -10,18 +10,18 @@ export const MEMBER_COLORS = [
 ];
 
 export const MEAL_CONFIG: { type: MealType; label: string }[] = [
-  { type: "breakfast", label: "Breakfast" },
-  { type: "lunch", label: "Lunch" },
-  { type: "snack", label: "Snack" },
-  { type: "dinner", label: "Dinner" },
+  { type: "breakfast", label: "Завтрак" },
+  { type: "lunch", label: "Обед" },
+  { type: "snack", label: "Перекус" },
+  { type: "dinner", label: "Ужин" },
 ];
 
 export const ACTIVITY_OPTIONS: { value: string; label: string }[] = [
-  { value: "sedentary", label: "Sedentary (little/no exercise)" },
-  { value: "light", label: "Lightly active (1–3 days/week)" },
-  { value: "moderate", label: "Moderately active (3–5 days/week)" },
-  { value: "very", label: "Very active (6–7 days/week)" },
-  { value: "extra", label: "Super active (physical job or twice/day)" },
+  { value: "sedentary", label: "Сидячий образ жизни" },
+  { value: "light", label: "Небольшая активность (1–3 дня в неделю)" },
+  { value: "moderate", label: "Умеренная активность (3–5 дней в неделю)" },
+  { value: "very", label: "Высокая активность (6–7 дней в неделю)" },
+  { value: "extra", label: "Физическая работа или тренировки дважды в день" },
 ];
 
 export const uid = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -42,7 +42,7 @@ export const shiftDate = (s: string, n: number): string => {
 
 export const formatDateLabel = (s: string): string => {
   const td = todayStr();
-  if (s === td) return "Today";
+  if (s === td) return "Сегодня";
   if (s === shiftDate(td, -1)) return "Yesterday";
   if (s === shiftDate(td, 1)) return "Tomorrow";
   return new Date(s + "T12:00:00").toLocaleDateString("en-US", {

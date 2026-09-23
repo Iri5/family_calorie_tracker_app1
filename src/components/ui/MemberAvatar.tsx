@@ -44,7 +44,7 @@ export function MacroBar({
         <span className="text-muted-foreground">{label}</span>
         <span className="font-medium tabular-nums text-foreground">
           {value}
-          <span className="text-muted-foreground font-normal">/{goal}g</span>
+          <span className="text-muted-foreground font-normal">/{goal}г</span>
         </span>
       </div>
       <div className="h-1 bg-muted rounded-full overflow-hidden">
