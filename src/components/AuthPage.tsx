@@ -10,9 +10,6 @@ interface AuthPageProps {
   onLogin: (userId: string, data: AppData) => void;
 }
 
-const HERO_IMAGE =
-  "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=900&h=1200&fit=crop&auto=format&q=80";
-
 export function AuthPage({ onLogin }: AuthPageProps) {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [name, setName] = useState("");
@@ -26,21 +23,28 @@ export function AuthPage({ onLogin }: AuthPageProps) {
 
     if (mode === "login") {
       const u = data.users.find(
-        u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
+        u =>
+          u.email.toLowerCase() === email.toLowerCase() &&
+          u.password === password
       );
       if (!u) return setError("Неверный email или пароль.");
       onLogin(u.id, data);
     } else {
       if (!name.trim()) return setError("Необходимо указать полное имя.");
       if (!email.includes("@")) return setError("Введите корректный email.");
-      if (password.length < 6) return setError("Пароль должен содержать не менее 6 символов.");
+      if (password.length < 6)
+        return setError("Пароль должен содержать не менее 6 символов.");
       if (data.users.find(u => u.email.toLowerCase() === email.toLowerCase()))
         return setError("Аккаунт с этим email уже существует.");
+
+      const isFirstUser = data.users.length === 0;
+
       const u: User = {
         id: uid(),
         email: email.toLowerCase().trim(),
         name: name.trim(),
         password,
+        role: isFirstUser ? "admin" : "user",
         familyMembers: [],
       };
       data.users.push(u);
@@ -71,7 +75,6 @@ export function AuthPage({ onLogin }: AuthPageProps) {
           transition={{ duration: 0.35 }}
           className="max-w-sm w-full mx-auto"
         >
-          {/* Brand */}
           <div className="mb-10">
             <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-3">
               NutriFamily
@@ -86,7 +89,6 @@ export function AuthPage({ onLogin }: AuthPageProps) {
             </p>
           </div>
 
-          {/* Form */}
           <div className="flex flex-col gap-4">
             {mode === "register" && (
               <Field label="Полное имя">
@@ -137,6 +139,12 @@ export function AuthPage({ onLogin }: AuthPageProps) {
               {mode === "login" ? "Зарегистрироваться" : "Войти"}
             </button>
           </p>
+
+          {mode === "register" && (
+            <p className="text-xs text-muted-foreground text-center mt-3">
+              Первый зарегистрированный пользователь становится администратором.
+            </p>
+          )}
         </motion.div>
       </div>
 

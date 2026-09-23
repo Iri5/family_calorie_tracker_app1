@@ -1,6 +1,22 @@
 import React, { useState, useMemo } from "react";
-import { ArrowLeft, ChevronLeft, ChevronRight, Plus, Trash2, Search, X, Check } from "lucide-react";
-import { AppData, FamilyMember, MealEntry, MealType, Product, Recipe } from "../types";
+import {
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Trash2,
+  Search,
+  X,
+  Check,
+} from "lucide-react";
+import {
+  AppData,
+  FamilyMember,
+  MealEntry,
+  MealType,
+  Product,
+  Recipe,
+} from "../types";
 import {
   memberDayNutrition,
   mealTypeNutrition,
@@ -17,7 +33,6 @@ import {
 } from "../lib/utils";
 import { MemberAvatar, MacroBar, CalorieRing } from "./ui/MemberAvatar";
 import { Button } from "./ui/Button";
-import { Modal } from "./ui/Modal";
 
 interface MemberDetailViewProps {
   member: FamilyMember;
@@ -39,9 +54,17 @@ export function MemberDetailView({
   const [addingTo, setAddingTo] = useState<MealType | null>(null);
 
   const dayN = useMemo(
-    () => memberDayNutrition(member.id, date, data.meals, data.products, data.recipes),
+    () =>
+      memberDayNutrition(
+        member.id,
+        date,
+        data.meals,
+        data.products,
+        data.recipes
+      ),
     [member.id, date, data]
   );
+
   const cg = getCalGoal(member);
   const mg = getMacroGoals(member);
   const remaining = cg - dayN.calories;
@@ -56,8 +79,11 @@ export function MemberDetailView({
     onUpdateData({ ...data, meals });
   };
 
-  const addEntry = (mealType: MealType, entry: MealEntry) => {
-    const meals = addOrMergeEntry(data.meals, member.id, date, mealType, entry);
+  const addEntries = (mealType: MealType, entries: MealEntry[]) => {
+    let meals = data.meals;
+    entries.forEach(e => {
+      meals = addOrMergeEntry(meals, member.id, date, mealType, e);
+    });
     onUpdateData({ ...data, meals });
   };
 
@@ -65,7 +91,6 @@ export function MemberDetailView({
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Nav */}
       <div className="flex items-center justify-between">
         <button
           onClick={onBack}
@@ -92,7 +117,6 @@ export function MemberDetailView({
         </div>
       </div>
 
-      {/* Summary card */}
       <div className="bg-card rounded-xl border border-border p-5">
         <div className="flex items-center gap-4 mb-5">
           <div className="relative shrink-0">
@@ -102,62 +126,105 @@ export function MemberDetailView({
             </div>
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="font-semibold text-base text-foreground">{member.name}</h2>
+            <h2 className="font-semibold text-base text-foreground">
+              {member.name}
+            </h2>
             <p className="text-xs text-muted-foreground">
-              {member.age} лет · {member.weight} кг · {member.height} см · Цель {cg} ккал/день
+              {member.age} лет · {member.weight} кг · {member.height} см · Цель{" "}
+              {cg} ккал/день
             </p>
-            <div className={`text-sm font-semibold mt-1.5 tabular-nums ${overColor}`}>
+            <div
+              className={`text-sm font-semibold mt-1.5 tabular-nums ${overColor}`}
+            >
               {dayN.calories} ккал потреблено
               <span className="font-normal text-muted-foreground ml-2 text-xs">
-                {over ? `· ${Math.abs(remaining)} превышение` : `· ${remaining} осталось`}
+                {over
+                  ? `· ${Math.abs(remaining)} превышение`
+                  : `· ${remaining} осталось`}
               </span>
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-3 gap-4">
-          <MacroBar label="Белки" value={dayN.protein} goal={mg.protein} colorClass="bg-blue-500" />
-          <MacroBar label="Жиры" value={dayN.fat} goal={mg.fat} colorClass="bg-amber-500" />
-          <MacroBar label="Углеводы" value={dayN.carbs} goal={mg.carbs} colorClass="bg-orange-500" />
+          <MacroBar
+            label="Белки"
+            value={dayN.protein}
+            goal={mg.protein}
+            colorClass="bg-blue-500"
+          />
+          <MacroBar
+            label="Жиры"
+            value={dayN.fat}
+            goal={mg.fat}
+            colorClass="bg-amber-500"
+          />
+          <MacroBar
+            label="Углеводы"
+            value={dayN.carbs}
+            goal={mg.carbs}
+            colorClass="bg-orange-500"
+          />
         </div>
       </div>
 
-      {/* Meal sections */}
       {MEAL_CONFIG.map(({ type, label }) => {
         const log = data.meals.find(
-          m => m.memberId === member.id && m.date === date && m.mealType === type
+          m =>
+            m.memberId === member.id &&
+            m.date === date &&
+            m.mealType === type
         );
         const mealN = mealTypeNutrition(
-          member.id, date, type, data.meals, data.products, data.recipes
+          member.id,
+          date,
+          type,
+          data.meals,
+          data.products,
+          data.recipes
         );
 
         return (
-          <div key={type} className="bg-card rounded-xl border border-border overflow-hidden">
+          <div
+            key={type}
+            className="bg-card rounded-xl border border-border overflow-hidden"
+          >
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-foreground">{label}</span>//////////
+                <span className="text-sm font-semibold text-foreground">
+                  {label}
+                </span>
                 {mealN.calories > 0 && (
                   <span className="text-xs text-muted-foreground tabular-nums">
                     {mealN.calories} ккал
                   </span>
                 )}
               </div>
-              <Button variant="ghost" size="xs" onClick={() => setAddingTo(type)}>
+              <Button
+                variant="ghost"
+                size="xs"
+                onClick={() => setAddingTo(type)}
+              >
                 <Plus size={12} /> Добавить еду
               </Button>
             </div>
 
             <div>
-              {(!log || log.entries.length === 0) ? (
+              {!log || log.entries.length === 0 ? (
                 <button
                   onClick={() => setAddingTo(type)}
                   className="w-full px-4 py-3 text-left text-xs text-muted-foreground hover:bg-muted/40 transition-colors flex items-center gap-2"
                 >
-                  <Plus size={11} className="opacity-40" /> Нажмите, чтобы добавить
+                  <Plus size={11} className="opacity-40" /> Нажмите, чтобы
+                  добавить
                 </button>
               ) : (
                 log.entries.map(entry => {
-                  const n = entryNutrition(entry, data.products, data.recipes);
+                  const n = entryNutrition(
+                    entry,
+                    data.products,
+                    data.recipes
+                  );
                   const name =
                     entry.type === "product"
                       ? data.products.find(p => p.id === entry.itemId)?.name
@@ -169,7 +236,7 @@ export function MemberDetailView({
                     >
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-foreground truncate">
-                          {name ?? "Неизвестно"} //////////////////////////////////////////////
+                          {name ?? "Неизвестно"}
                           {entry.type === "recipe" && (
                             <span className="ml-1.5 text-xs text-muted-foreground font-normal">
                               (рецепт)
@@ -177,11 +244,14 @@ export function MemberDetailView({
                           )}
                         </div>
                         <div className="text-xs text-muted-foreground tabular-nums">
-                          {entry.grams}г · .Б {n.protein}г · Ж {n.fat}г · У {n.carbs}г
+                          {entry.grams}г · Б {n.protein}г · Ж {n.fat}г · У{" "}
+                          {n.carbs}г
                         </div>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
-                        <span className="text-sm font-medium tabular-nums">{n.calories} ккал</span>
+                        <span className="text-sm font-medium tabular-nums">
+                          {n.calories} ккал
+                        </span>
                         <button
                           onClick={() => removeEntry(type, entry.id)}
                           className="p-1 rounded opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all"
@@ -202,7 +272,10 @@ export function MemberDetailView({
         <AddFoodModal
           open
           onClose={() => setAddingTo(null)}
-          onAdd={entry => { addEntry(addingTo, entry); setAddingTo(null); }}
+          onAdd={entries => {
+            addEntries(addingTo, entries);
+            setAddingTo(null);
+          }}
           products={data.products}
           recipes={data.recipes}
         />
@@ -211,7 +284,14 @@ export function MemberDetailView({
   );
 }
 
-// ─── Internal Add Food Modal ──────────────────────────────────────────────────
+// ─── Internal Add Food Modal (корзина) ────────────────────────────────────────
+
+type BasketRow = {
+  key: string;
+  type: "product" | "recipe";
+  itemId: string;
+  grams: string;
+};
 
 function AddFoodModal({
   open,
@@ -222,80 +302,131 @@ function AddFoodModal({
 }: {
   open: boolean;
   onClose: () => void;
-  onAdd: (e: MealEntry) => void;
+  onAdd: (entries: MealEntry[]) => void;
   products: Product[];
   recipes: Recipe[];
 }) {
   const [tab, setTab] = useState<"products" | "recipes">("products");
   const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState<{ type: "product" | "recipe"; id: string } | null>(null);
-  const [grams, setGrams] = useState("100");
+  const [basket, setBasket] = useState<BasketRow[]>([]);
 
   const filteredP = useMemo(
-    () => products.filter(p => p.name.toLowerCase().includes(search.toLowerCase())),
+    () =>
+      products.filter(p =>
+        p.name.toLowerCase().includes(search.toLowerCase())
+      ),
     [products, search]
   );
   const filteredR = useMemo(
-    () => recipes.filter(r => r.name.toLowerCase().includes(search.toLowerCase())),
+    () =>
+      recipes.filter(r =>
+        r.name.toLowerCase().includes(search.toLowerCase())
+      ),
     [recipes, search]
   );
 
-  const selProduct = selected?.type === "product" ? products.find(p => p.id === selected.id) : null;
-  const selRecipe = selected?.type === "recipe" ? recipes.find(r => r.id === selected.id) : null;
+  const addRow = (type: "product" | "recipe", itemId: string) => {
+    // не добавляем дважды одинаковую позицию
+    if (basket.some(b => b.type === type && b.itemId === itemId)) return;
+    setBasket(b => [
+      ...b,
+      { key: uid(), type, itemId, grams: "100" },
+    ]);
+    setSearch("");
+  };
 
-  const preview = useMemo(() => {
-    const g = parseFloat(grams);
-    if (!selected || !g || g <= 0) return null;
-    if (selected.type === "product" && selProduct) return productNutrition(selProduct, g);
-    if (selected.type === "recipe" && selRecipe) {
-      const p100 = recipePer100g(selRecipe, products);
-      const f = g / 100;
-      return { calories: Math.round(p100.calories * f), protein: p100.protein * f, fat: p100.fat * f, carbs: p100.carbs * f };
+  const removeRow = (key: string) =>
+    setBasket(b => b.filter(r => r.key !== key));
+
+  const setRowGrams = (key: string, value: string) =>
+    setBasket(b => b.map(r => (r.key === key ? { ...r, grams: value } : r)));
+
+  const rowNutrition = (row: BasketRow) => {
+    const g = parseFloat(row.grams);
+    if (!g || g <= 0) return null;
+    if (row.type === "product") {
+      const p = products.find(x => x.id === row.itemId);
+      return p ? productNutrition(p, g) : null;
     }
-    return null;
-  }, [selected, grams, selProduct, selRecipe, products]);
+    const r = recipes.find(x => x.id === row.itemId);
+    if (!r) return null;
+    const p100 = recipePer100g(r, products);
+    const f = g / 100;
+    return {
+      calories: Math.round(p100.calories * f),
+      protein: p100.protein * f,
+      fat: p100.fat * f,
+      carbs: p100.carbs * f,
+    };
+  };
+
+  const totalCalories = basket.reduce((sum, row) => {
+    const n = rowNutrition(row);
+    return sum + (n?.calories ?? 0);
+  }, 0);
 
   const handleAdd = () => {
-    const g = parseFloat(grams);
-    if (!selected || !g || g <= 0) return;
-    onAdd({ id: uid(), type: selected.type, itemId: selected.id, grams: g });
+    const valid = basket.filter(r => parseFloat(r.grams) > 0);
+    if (valid.length === 0) return;
+    onAdd(
+      valid.map(r => ({
+        id: uid(),
+        type: r.type,
+        itemId: r.itemId,
+        grams: parseFloat(r.grams),
+      }))
+    );
   };
+
+  const rowName = (row: BasketRow) =>
+    row.type === "product"
+      ? products.find(p => p.id === row.itemId)?.name ?? ""
+      : recipes.find(r => r.id === row.itemId)?.name ?? "";
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-      <div className="absolute inset-0 bg-black/25 backdrop-blur-[1px]" onClick={onClose} />
+      <div
+        className="absolute inset-0 bg-black/25 backdrop-blur-[1px]"
+        onClick={onClose}
+      />
       <div className="relative z-10 w-full sm:max-w-md bg-card rounded-t-xl sm:rounded-xl shadow-2xl border border-border flex flex-col max-h-[85vh]">
         <div className="flex items-center justify-between px-4 py-3.5 border-b border-border shrink-0">
           <span className="font-semibold text-sm">Добавить еду</span>
-          <button onClick={onClose} className="p-1 text-muted-foreground hover:text-foreground rounded">
+          <button
+            onClick={onClose}
+            className="p-1 text-muted-foreground hover:text-foreground rounded"
+          >
             <X size={14} />
           </button>
         </div>
 
-        {/* Tabs */}
         <div className="flex gap-1.5 px-4 pt-3 shrink-0">
-          {(["products", "recipes"] as const).map(t => ( /////////////////////////////////
+          {(["products", "recipes"] as const).map(t => (
             <button
               key={t}
-              onClick={() => { setTab(t); setSelected(null); }}
+              onClick={() => setTab(t)}
               className={[
-                "px-3 py-1 rounded-md text-xs font-medium capitalize transition-colors",
-                tab === t ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+                "px-3 py-1 rounded-md text-xs font-medium transition-colors",
+                tab === t
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground",
               ].join(" ")}
             >
-              {t}
+              {t === "products" ? "Продукты" : "Рецепты"}
             </button>
           ))}
         </div>
 
-        {/* Search */}
         <div className="px-4 pt-2 pb-1 shrink-0 relative">
-          <Search size={12} className="absolute left-7 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          <Search
+            size={12}
+            className="absolute left-7 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+          />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder={`Поиск ${tab}…`}
-            className="w-full pl-8 pr-8 py-2 rounded-lg border border-border bg-input-background text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+            placeholder="Поиск…"
+            className="w-full pl-8 pr-8 py-2 rounded-lg border border-border bg-input-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
           {search && (
             <button
@@ -307,79 +438,115 @@ function AddFoodModal({
           )}
         </div>
 
-        {/* List */}
         <div className="flex-1 overflow-y-auto px-2 py-1">
-          {tab === "products" && filteredP.map(p => (
-            <button
-              key={p.id}
-              onClick={() => setSelected({ type: "product", id: p.id })}
-              className={[
-                "w-full text-left px-3 py-2.5 rounded-lg mb-0.5 flex items-center justify-between transition-colors",
-                selected?.id === p.id && selected.type === "product"
-                  ? "bg-accent/60 ring-1 ring-primary/20"
-                  : "hover:bg-muted",
-              ].join(" ")}
-            >
-              <div>
-                <div className="text-sm font-medium">{p.name}</div>////////////////////
-                <div className="text-xs text-muted-foreground">{p.description}</div>
-              </div>
-              <span className="text-xs text-muted-foreground shrink-0 ml-2">{p.calories} ккал</span>
-            </button>
-          ))}
+          {tab === "products" &&
+            filteredP.map(p => (
+              <button
+                key={p.id}
+                onClick={() => addRow("product", p.id)}
+                className="w-full text-left px-3 py-2.5 rounded-lg mb-0.5 flex items-center justify-between hover:bg-muted transition-colors group"
+              >
+                <div className="min-w-0">
+                  <div className="text-sm font-medium">{p.name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {p.description}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0 ml-2">
+                  <span className="text-xs text-muted-foreground">
+                    {p.calories} ккал
+                  </span>
+                  <Plus
+                    size={13}
+                    className="text-muted-foreground group-hover:text-primary"
+                  />
+                </div>
+              </button>
+            ))}
           {tab === "products" && filteredP.length === 0 && (
-            <p className="text-center text-xs text-muted-foreground py-6">Продукты не найдены.</p>
+            <p className="text-center text-xs text-muted-foreground py-6">
+              Продукты не найдены.
+            </p>
           )}
-          {tab === "recipes" && recipes.length === 0 && (
-            <p className="text-center text-xs text-muted-foreground py-6">Пока нет рецептов.</p>
+          {tab === "recipes" &&
+            filteredR.map(r => (
+              <button
+                key={r.id}
+                onClick={() => addRow("recipe", r.id)}
+                className="w-full text-left px-3 py-2.5 rounded-lg mb-0.5 flex items-center justify-between hover:bg-muted transition-colors group"
+              >
+                <span className="text-sm font-medium">{r.name}</span>
+                <Plus
+                  size={13}
+                  className="text-muted-foreground group-hover:text-primary"
+                />
+              </button>
+            ))}
+          {tab === "recipes" && filteredR.length === 0 && (
+            <p className="text-center text-xs text-muted-foreground py-6">
+              Рецепты не найдены.
+            </p>
           )}
-          {tab === "recipes" && filteredR.map(r => (
-            <button
-              key={r.id}
-              onClick={() => setSelected({ type: "recipe", id: r.id })}
-              className={[
-                "w-full text-left px-3 py-2.5 rounded-lg mb-0.5 flex items-center justify-between transition-colors",
-                selected?.id === r.id && selected.type === "recipe"
-                  ? "bg-accent/60 ring-1 ring-primary/20"
-                  : "hover:bg-muted",
-              ].join(" ")}
-            >
-              <span className="text-sm font-medium">{r.name}</span>
-              {selected?.id === r.id && <Check size={13} className="text-primary" />}
-            </button>
-          ))}
         </div>
 
-        {/* Grams + add */}
-        {selected && (
-          <div className="px-4 py-3 border-t border-border bg-muted/20 shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium truncate">{selProduct?.name ?? selRecipe?.name}</div>/////////////////
-                {preview && (
-                  <div className="text-xs text-muted-foreground tabular-nums">
-                    {preview.calories} ккал · Б {Math.round(preview.protein * 10) / 10}г
+        {/* Корзина */}
+        {basket.length > 0 && (
+          <div className="border-t border-border bg-muted/20 shrink-0 max-h-60 overflow-y-auto">
+            <div className="px-4 py-2 flex items-center justify-between">
+              <span className="text-xs font-medium text-muted-foreground">
+                Выбрано: {basket.length}
+              </span>
+              <span className="text-xs font-medium tabular-nums">
+                ≈ {totalCalories} ккал
+              </span>
+            </div>
+            <div className="divide-y divide-border">
+              {basket.map(row => {
+                const n = rowNutrition(row);
+                return (
+                  <div
+                    key={row.key}
+                    className="px-4 py-2 grid grid-cols-[1fr_80px_60px_24px] items-center gap-2"
+                  >
+                    <span className="text-sm truncate">{rowName(row)}</span>
+                    <input
+                      type="number"
+                      value={row.grams}
+                      onChange={e => setRowGrams(row.key, e.target.value)}
+                      min={1}
+                      className="w-full text-right px-2 py-1 rounded border border-border bg-card text-sm tabular-nums focus:outline-none focus:ring-1 focus:ring-primary/20"
+                    />
+                    <span className="text-xs text-muted-foreground tabular-nums text-right">
+                      {n ? `${n.calories} ккал` : "—"}
+                    </span>
+                    <button
+                      onClick={() => removeRow(row.key)}
+                      className="p-1 text-muted-foreground hover:text-destructive"
+                    >
+                      <X size={12} />
+                    </button>
                   </div>
-                )}
-              </div>
-              <input
-                type="number"
-                value={grams}
-                onChange={e => setGrams(e.target.value)}
-                min={1}
-                className="w-16 text-right px-2 py-1.5 rounded border border-border bg-card text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/20"
-              />
-              <span className="text-xs text-muted-foreground">г</span>
-              <Button
-                size="sm"
-                onClick={handleAdd}
-                disabled={!grams || parseFloat(grams) <= 0}
-              >
-                <Check size={12} /> Добавить
-              </Button>
+                );
+              })}
             </div>
           </div>
         )}
+
+        {/* Footer */}
+        <div className="px-4 py-3 border-t border-border bg-card shrink-0 flex justify-end gap-2">
+          <Button variant="outline" size="sm" onClick={onClose}>
+            Отмена
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleAdd}
+            disabled={basket.filter(r => parseFloat(r.grams) > 0).length === 0}
+          >
+            <Check size={12} /> Добавить{" "}
+            {basket.filter(r => parseFloat(r.grams) > 0).length > 0 &&
+              `(${basket.filter(r => parseFloat(r.grams) > 0).length})`}
+          </Button>
+        </div>
       </div>
     </div>
   );

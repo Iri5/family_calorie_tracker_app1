@@ -32,7 +32,7 @@ export default function App() {
   };
 
   const updateUser = (u: User) =>
-    updateData({ ...data, users: data.users.map(x => x.id === u.id ? u : x) });
+    updateData({ ...data, users: data.users.map(x => (x.id === u.id ? u : x)) });
 
   // ─── Auth ─────────────────────────────────────────────────────────────────
 
@@ -74,10 +74,9 @@ export default function App() {
     return <AuthPage onLogin={handleLogin} />;
   }
 
-  const selectedMember =
-    selectedMemberId
-      ? user.familyMembers.find(m => m.id === selectedMemberId) ?? null
-      : null;
+  const selectedMember = selectedMemberId
+    ? user.familyMembers.find(m => m.id === selectedMemberId) ?? null
+    : null;
 
   const renderContent = () => {
     if (selectedMember) {
@@ -95,17 +94,13 @@ export default function App() {
 
     switch (view) {
       case "family":
-        return (
-          <FamilyMembersView
-            user={user}
-            onUpdateUser={updateUser}
-          />
-        );
+        return <FamilyMembersView user={user} onUpdateUser={updateUser} />;
       case "products":
         return (
           <ProductsView
             data={data}
             onUpdateData={updateData}
+            user={user}
           />
         );
       case "recipes":
@@ -113,6 +108,7 @@ export default function App() {
           <RecipesView
             data={data}
             onUpdateData={updateData}
+            user={user}
           />
         );
       default:
@@ -134,29 +130,20 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
-      {/* Desktop sidebar */}
       <div className="hidden md:flex h-full">
-        <Sidebar
-          view={view}
-          onNav={handleNav}
-          user={user}
-          onLogout={handleLogout}
-        />
+        <Sidebar view={view} onNav={handleNav} user={user} onLogout={handleLogout} />
       </div>
 
-      {/* Main content */}
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto px-4 py-6 pb-24 md:pb-8">
           {renderContent()}
         </div>
       </main>
 
-      {/* Mobile bottom nav */}
       <div className="fixed bottom-0 left-0 right-0 md:hidden z-40">
         <BottomNav view={view} onNav={handleNav} />
       </div>
 
-      {/* Family meal modal */}
       <FamilyMealModal
         open={familyMealOpen}
         onClose={() => setFamilyMealOpen(false)}

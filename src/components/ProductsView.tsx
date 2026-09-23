@@ -1,24 +1,45 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
-import { Search, X, Plus, Pencil, Trash2, Barcode } from "lucide-react";
-import { AppData, Product } from "../types";
+import {
+  Search,
+  X,
+  Plus,
+  Pencil,
+  Trash2,
+  Barcode,
+  Download,
+  Upload,
+} from "lucide-react";
+import { AppData, Product, User } from "../types";
 import { uid } from "../lib/utils";
 import { CATEGORIES } from "../data/categories";
+import { exportCatalog } from "../lib/exportImport";
 import { Button } from "./ui/Button";
 import { Modal } from "./ui/Modal";
 import { Field, TInput, NInput, Sel } from "./ui/Fields";
+import { ImportCatalogModal } from "./ImportCatalogModal";
 
 interface ProductsViewProps {
   data: AppData;
   onUpdateData: (d: AppData) => void;
+  user: User;
 }
 
 const emptyForm = {
-  name: "", description: "", category: "protein", subcategory: "",
-  calories: "", protein: "", fat: "", carbs: "", barcode: "",
+  name: "",
+  description: "",
+  category: "protein",
+  subcategory: "",
+  calories: "",
+  protein: "",
+  fat: "",
+  carbs: "",
+  barcode: "",
 };
 type ProductForm = typeof emptyForm;
 
-export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
+export function ProductsView({ data, onUpdateData, user }: ProductsViewProps) {
+  const isAdmin = user.role === "admin";
+
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>("all");
@@ -26,6 +47,7 @@ export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<ProductForm>(emptyForm);
   const [showBarcodeModal, setShowBarcodeModal] = useState(false);
+  const [showImport, setShowImport] = useState(false);
 
   const setF = (k: keyof ProductForm, v: string) =>
     setForm(f => ({ ...f, [k]: v }));
@@ -35,11 +57,17 @@ export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
 
   const filtered = useMemo(() => {
     let list = data.products;
-    if (selectedCategory !== "all") list = list.filter(p => p.category === selectedCategory);
-    if (selectedSubcategory !== "all") list = list.filter(p => p.subcategory === selectedSubcategory);
+    if (selectedCategory !== "all")
+      list = list.filter(p => p.category === selectedCategory);
+    if (selectedSubcategory !== "all")
+      list = list.filter(p => p.subcategory === selectedSubcategory);
     if (search.trim()) {
       const q = search.toLowerCase();
-      list = list.filter(p => p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q));
+      list = list.filter(
+        p =>
+          p.name.toLowerCase().includes(q) ||
+          p.description.toLowerCase().includes(q)
+      );
     }
     return list;
   }, [data.products, selectedCategory, selectedSubcategory, search]);
@@ -52,9 +80,15 @@ export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
 
   const openEdit = (p: Product) => {
     setForm({
-      name: p.name, description: p.description, category: p.category,
-      subcategory: p.subcategory, calories: String(p.calories), protein: String(p.protein),
-      fat: String(p.fat), carbs: String(p.carbs), barcode: p.barcode ?? "",
+      name: p.name,
+      description: p.description,
+      category: p.category,
+      subcategory: p.subcategory,
+      calories: String(p.calories),
+      protein: String(p.protein),
+      fat: String(p.fat),
+      carbs: String(p.carbs),
+      barcode: p.barcode ?? "",
     });
     setEditId(p.id);
     setShowForm(true);
@@ -78,10 +112,17 @@ export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
     onUpdateData({
       ...data,
       products: editId
-        ? data.products.map(x => x.id === editId ? p : x)
+        ? data.products.map(x => (x.id === editId ? p : x))
         : [...data.products, p],
     });
     setShowForm(false);
+  };
+
+  const handleDelete = (p: Product) => {
+    onUpdateData({
+      ...data,
+      products: data.products.filter(x => x.id !== p.id),
+    });
   };
 
   const handleBarcodeFound = (barcode: string) => {
@@ -95,20 +136,51 @@ export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
     }
   };
 
-  const catImg = (catId: string) => CATEGORIES.find(c => c.id === catId)?.image ?? "";
+  const catImg = (catId: string) =>
+    CATEGORIES.find(c => c.id === catId)?.image ?? "";
+
+  // Может ли текущий пользователь править/удалять продукт
+  const canEdit = (p: Product) => p.isCustom || isAdmin;
 
   return (
     <div className="flex flex-col gap-5">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-base font-semibold text-foreground">Продукты</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">{data.products.length} позиции ·значение на 100 г</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {data.products.length} позиции · значение на 100 г
+            {isAdmin && (
+              <span className="ml-2 text-primary font-medium">· Админ</span>
+            )}
+          </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => setShowBarcodeModal(true)}>
-            <Barcode size={13} /> Сканировать штрихкод
-          </Button>
+        <div className="flex gap-2 flex-wrap">
+          {isAdmin && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => exportCatalog(data)}
+              >
+                <Download size={13} /> Экспорт
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowImport(true)}
+              >
+                <Upload size={13} /> Импорт
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowBarcodeModal(true)}
+              >
+                <Barcode size={13} /> Штрихкод
+              </Button>
+            </>
+          )}
           <Button size="sm" onClick={() => openAdd()}>
             <Plus size={13} /> Добавить продукт
           </Button>
@@ -117,7 +189,10 @@ export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
 
       {/* Search */}
       <div className="relative">
-        <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+        <Search
+          size={13}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+        />
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
@@ -139,7 +214,10 @@ export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
         <div>
           <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 mb-3">
             <button
-              onClick={() => { setSelectedCategory("all"); setSelectedSubcategory("all"); }}
+              onClick={() => {
+                setSelectedCategory("all");
+                setSelectedSubcategory("all");
+              }}
               className={[
                 "rounded-lg border p-2 text-xs font-medium transition-colors text-center",
                 selectedCategory === "all"
@@ -177,7 +255,6 @@ export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
             ))}
           </div>
 
-          {/* Subcategory pills */}
           {selectedCategory !== "all" && subcategories.length > 0 && (
             <div className="flex gap-1.5 flex-wrap">
               <button
@@ -212,7 +289,6 @@ export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
 
       {/* Products table */}
       <div className="bg-card rounded-xl border border-border overflow-hidden">
-        {/* Table header */}
         <div className="hidden sm:grid sm:grid-cols-[1fr_64px_72px_60px_72px_60px] px-4 py-2.5 bg-muted/40 border-b border-border text-xs font-medium text-muted-foreground">
           <span>Продукт</span>
           <span className="text-right">Ккал</span>
@@ -236,7 +312,9 @@ export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
                     className="w-5 h-5 rounded object-cover shrink-0 opacity-70"
                   />
                 )}
-                <span className="text-sm font-medium text-foreground truncate">{p.name}</span>
+                <span className="text-sm font-medium text-foreground truncate">
+                  {p.name}
+                </span>
                 {p.isCustom && (
                   <span className="text-[10px] font-semibold bg-primary/10 text-primary px-1.5 py-0.5 rounded shrink-0">
                     Пользовательский
@@ -244,18 +322,28 @@ export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
                 )}
               </div>
               {p.description && (
-                <div className="text-xs text-muted-foreground truncate mt-0.5">{p.description}</div>
+                <div className="text-xs text-muted-foreground truncate mt-0.5">
+                  {p.description}
+                </div>
               )}
               <div className="sm:hidden text-xs text-muted-foreground tabular-nums mt-0.5">
                 {p.calories} ккал · Б {p.protein}г · Ж {p.fat}г · У {p.carbs}г
               </div>
             </div>
-            <span className="hidden sm:block text-sm text-right tabular-nums">{p.calories}</span>
-            <span className="hidden sm:block text-sm text-right tabular-nums text-blue-600">{p.protein}г</span>
-            <span className="hidden sm:block text-sm text-right tabular-nums text-amber-600">{p.fat}г</span>
-            <span className="hidden sm:block text-sm text-right tabular-nums text-orange-600">{p.carbs}г</span>
+            <span className="hidden sm:block text-sm text-right tabular-nums">
+              {p.calories}
+            </span>
+            <span className="hidden sm:block text-sm text-right tabular-nums text-blue-600">
+              {p.protein}г
+            </span>
+            <span className="hidden sm:block text-sm text-right tabular-nums text-amber-600">
+              {p.fat}г
+            </span>
+            <span className="hidden sm:block text-sm text-right tabular-nums text-orange-600">
+              {p.carbs}г
+            </span>
             <div className="flex gap-1 justify-end shrink-0">
-              {p.isCustom ? (
+              {canEdit(p) ? (
                 <>
                   <button
                     onClick={() => openEdit(p)}
@@ -264,9 +352,7 @@ export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
                     <Pencil size={12} />
                   </button>
                   <button
-                    onClick={() =>
-                      onUpdateData({ ...data, products: data.products.filter(x => x.id !== p.id) })
-                    }
+                    onClick={() => handleDelete(p)}
                     className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
                   >
                     <Trash2 size={12} />
@@ -293,8 +379,13 @@ export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
         title={editId ? "Редактировать" : "Новый продукт"}
         footer={
           <>
-            <Button variant="outline" onClick={() => setShowForm(false)}>Отмена</Button>
-            <Button onClick={handleSave} disabled={!form.name.trim() || !form.calories}>
+            <Button variant="outline" onClick={() => setShowForm(false)}>
+              Отмена
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={!form.name.trim() || !form.calories}
+            >
               {editId ? "Сохранить" : "Добавить продукт"}
             </Button>
           </>
@@ -302,45 +393,99 @@ export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
       >
         <div className="flex flex-col gap-4">
           <Field label="Название">
-            <TInput value={form.name} onChange={v => setF("name", v)} placeholder="напр. Киноа, варёная" />
+            <TInput
+              value={form.name}
+              onChange={v => setF("name", v)}
+              placeholder="напр. Киноа, варёная"
+            />
           </Field>
           <Field label="Описание">
-            <TInput value={form.description} onChange={v => setF("description", v)} placeholder="Необязательное примечание" />
+            <TInput
+              value={form.description}
+              onChange={v => setF("description", v)}
+              placeholder="Необязательное примечание"
+            />
           </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Категория">
-              <Sel value={form.category} onChange={v => { setF("category", v); setF("subcategory", ""); }}>
+              <Sel
+                value={form.category}
+                onChange={v => {
+                  setF("category", v);
+                  setF("subcategory", "");
+                }}
+              >
                 {CATEGORIES.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
                 ))}
               </Sel>
             </Field>
             <Field label="Подкатегория">
-              <Sel value={form.subcategory} onChange={v => setF("subcategory", v)}>
-                <option value="">Нет</option> //////////////
-                {(CATEGORIES.find(c => c.id === form.category)?.subcategories ?? []).map(sub => (
-                  <option key={sub.id} value={sub.id}>{sub.id}</option>
+              <Sel
+                value={form.subcategory}
+                onChange={v => setF("subcategory", v)}
+              >
+                <option value="">Нет</option>
+                {(
+                  CATEGORIES.find(c => c.id === form.category)?.subcategories ??
+                  []
+                ).map(sub => (
+                  <option key={sub.id} value={sub.id}>
+                    {sub.id}
+                  </option>
                 ))}
               </Sel>
             </Field>
           </div>
           <Field label="Штрихкод (опционально)">
-            <TInput value={form.barcode} onChange={v => setF("barcode", v)} placeholder="напр. 5449000000439" />
+            <TInput
+              value={form.barcode}
+              onChange={v => setF("barcode", v)}
+              placeholder="напр. 5449000000439"
+            />
           </Field>
           <div className="bg-muted/40 rounded-lg p-3.5">
-            <p className="text-xs font-medium text-muted-foreground mb-3">Пищевая ценность на 100 г</p>
+            <p className="text-xs font-medium text-muted-foreground mb-3">
+              Пищевая ценность на 100 г
+            </p>
             <div className="grid grid-cols-2 gap-3">
               <Field label="Калории (ккал)">
-                <NInput value={form.calories} onChange={v => setF("calories", v)} min={0} step={0.1} placeholder="0" />
+                <NInput
+                  value={form.calories}
+                  onChange={v => setF("calories", v)}
+                  min={0}
+                  step={0.1}
+                  placeholder="0"
+                />
               </Field>
               <Field label="Белки (г)">
-                <NInput value={form.protein} onChange={v => setF("protein", v)} min={0} step={0.1} placeholder="0" />
+                <NInput
+                  value={form.protein}
+                  onChange={v => setF("protein", v)}
+                  min={0}
+                  step={0.1}
+                  placeholder="0"
+                />
               </Field>
               <Field label="Жиры (г)">
-                <NInput value={form.fat} onChange={v => setF("fat", v)} min={0} step={0.1} placeholder="0" />
+                <NInput
+                  value={form.fat}
+                  onChange={v => setF("fat", v)}
+                  min={0}
+                  step={0.1}
+                  placeholder="0"
+                />
               </Field>
               <Field label="Углеводы (г)">
-                <NInput value={form.carbs} onChange={v => setF("carbs", v)} min={0} step={0.1} placeholder="0" />
+                <NInput
+                  value={form.carbs}
+                  onChange={v => setF("carbs", v)}
+                  min={0}
+                  step={0.1}
+                  placeholder="0"
+                />
               </Field>
             </div>
           </div>
@@ -352,6 +497,16 @@ export function ProductsView({ data, onUpdateData }: ProductsViewProps) {
         <BarcodeModal
           onScan={handleBarcodeFound}
           onClose={() => setShowBarcodeModal(false)}
+        />
+      )}
+
+      {/* Import Modal */}
+      {showImport && (
+        <ImportCatalogModal
+          open
+          onClose={() => setShowImport(false)}
+          data={data}
+          onUpdateData={onUpdateData}
         />
       )}
     </div>
@@ -375,7 +530,8 @@ function BarcodeModal({
   const [scanning, setScanning] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
 
-  const hasBarcodeAPI = typeof window !== "undefined" && "BarcodeDetector" in window;
+  const hasBarcodeAPI =
+    typeof window !== "undefined" && "BarcodeDetector" in window;
 
   const stopCamera = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -422,6 +578,7 @@ function BarcodeModal({
   useEffect(() => {
     if (hasBarcodeAPI) startCamera();
     return () => stopCamera();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleManualSubmit = () => {
@@ -430,21 +587,27 @@ function BarcodeModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={onClose} />
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
+        onClick={onClose}
+      />
       <div className="relative z-10 w-full max-w-sm bg-card rounded-xl border border-border overflow-hidden shadow-2xl">
-        {/* Header */}
         <div className="flex items-center justify-between px-4 py-3.5 border-b border-border">
           <div className="flex items-center gap-2">
             <Barcode size={15} className="text-primary" />
-            <span className="font-semibold text-sm">Сканирование штрихкода</span>
+            <span className="font-semibold text-sm">
+              Сканирование штрихкода
+            </span>
           </div>
-          <button onClick={onClose} className="p-1 rounded text-muted-foreground hover:text-foreground">
+          <button
+            onClick={onClose}
+            className="p-1 rounded text-muted-foreground hover:text-foreground"
+          >
             <X size={14} />
           </button>
         </div>
 
         <div className="p-4 flex flex-col gap-4">
-          {/* Camera view */}
           {hasBarcodeAPI && !cameraError && (
             <div className="relative bg-black rounded-lg overflow-hidden aspect-[4/3]">
               <video
@@ -453,7 +616,6 @@ function BarcodeModal({
                 muted
                 playsInline
               />
-              {/* Scanner overlay */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="w-56 h-32 relative">
                   <div className="absolute top-0 left-0 w-5 h-5 border-t-2 border-l-2 border-white rounded-tl" />
@@ -481,14 +643,16 @@ function BarcodeModal({
 
           {!hasBarcodeAPI && (
             <div className="bg-muted rounded-lg px-3 py-2.5 text-xs text-muted-foreground">
-              Сканирование штрихкодов не поддерживается в этом браузере. Введите штрихкод вручную.
+              Сканирование штрихкодов не поддерживается в этом браузере.
+              Введите штрихкод вручную.
             </div>
           )}
 
-          {/* Manual input */}
           <div>
             <p className="text-xs font-medium text-muted-foreground mb-2">
-              {hasBarcodeAPI && !cameraError ? "Или введите вручную" : "Введите штрихкод"}
+              {hasBarcodeAPI && !cameraError
+                ? "Или введите вручную"
+                : "Введите штрихкод"}
             </p>
             <div className="flex gap-2">
               <input
@@ -517,5 +681,3 @@ function BarcodeModal({
     </div>
   );
 }
-
-

@@ -2,6 +2,7 @@ export type Sex = "male" | "female";
 export type ActivityLevel = "sedentary" | "light" | "moderate" | "very" | "extra";
 export type MealType = "breakfast" | "lunch" | "snack" | "dinner";
 export type View = "dashboard" | "products" | "recipes" | "family";
+export type UserRole = "admin" | "user";
 
 export interface Macros {
   calories: number;
@@ -76,6 +77,7 @@ export interface User {
   email: string;
   name: string;
   password: string;
+  role: UserRole;
   familyMembers: FamilyMember[];
 }
 
